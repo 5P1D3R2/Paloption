@@ -81,15 +81,15 @@ app.get('/api/odds', (req, res) => res.json({ winChance: WIN_CHANCE, payout: PAY
 
 app.post('/api/trade', auth, (req, res) => {
   const { account, stake, pick } = req.body || {};
-  const s = Number(stake);
-  if (!['demo', 'real'].includes(account) || !['even', 'odd'].includes(pick) || !(s >= 1 && s <= 100))
-    return res.status(400).json({ error: 'Invalid trade (stake $1-$100)' });
+  const s = Math.round(Number(stake) * 100) / 100;
+  if (!['demo', 'real'].includes(account) || !['even', 'odd'].includes(pick) || !(s >= 0.1 && s <= 100))
+    return res.status(400).json({ error: 'Invalid trade (stake $0.10 - $100)' });
   const u = req.user;
   if (u[account] < s) return res.status(400).json({ error: 'Insufficient balance' });
   const tick = nextTick(); lastTick = tick; pushTick(tick);
   const win = (tick.digit % 2 === 0) === (pick === 'even');
-  const profit = win ? +(s * PAYOUT - s).toFixed(2) : -s;
-  u[account] = +(u[account] + profit).toFixed(2);
+  const profit = win ? +(s * (PAYOUT - 1)).toFixed(4) : -s;
+  u[account] = +(u[account] + profit).toFixed(4);
   u.history.unshift({ account, pick, stake: s, digit: tick.digit, win, profit, t: Date.now() });
   res.json({ win, profit, digit: tick.digit, tick, user: pub(u) });
 });
