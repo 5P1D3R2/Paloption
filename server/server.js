@@ -135,9 +135,15 @@ app.post('/api/trade', auth, (req, res) => {
 });
 
 // ---------- TinyPesa deposits (M-Pesa STK push) ----------
-// Env: TINYPESA_API_KEY, TINYPESA_ACCOUNT_NO, WEBHOOK_SECRET, KES_PER_USD (default 129)
+// Env: TINYPESA_API_KEY, TINYPESA_SLUG (sent as account_no), TINYPESA_TARGET (optional TinyPesa endpoint URL),
+//      WEBHOOK_SECRET, KES_PER_USD (default 129).  TINYPESA_ACCOUNT_NO still works as a fallback for TINYPESA_SLUG.
 // TinyPesa callback URL: https://YOUR-SERVER/api/tinypesa/callback/<WEBHOOK_SECRET>
 const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
+const DEFAULT_TARGET = 'https://tinypesa.com/api/v1/express/initialize';
+const T = (process.env.TINYPESA_TARGET || '').trim();
+// Only accept TINYPESA_TARGET as the API endpoint if it is a tinypesa.com URL; otherwise use the default.
+const TINYPESA_URL = /^https:\/\/([a-z0-9-]+\.)*tinypesa\.com\//i.test(T) ? T : DEFAULT_TARGET;
+if (T && TINYPESA_URL === DEFAULT_TARGET) console.log('TINYPESA_TARGET is not a tinypesa.com URL, using the default endpoint');
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 const deposits = new Map();
 const seenReceipts = new Set();
@@ -151,10 +157,10 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
   const kes = Math.ceil(usd * KES_PER_USD);
   const id = crypto.randomUUID();
   try {
-    const r = await fetch('https://tinypesa.com/api/v1/express/initialize', {
+    const r = await fetch(TINYPESA_URL, {
       method: 'POST',
       headers: { Apikey: process.env.TINYPESA_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_ACCOUNT_NO || id }).toString()
+      body: new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id }).toString()
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || j.success === false) return res.status(502).json({ error: j.message || 'Could not start payment' });
