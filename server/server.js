@@ -156,8 +156,12 @@ function postForm(urlStr, headers, body) {
 const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
 const DEFAULT_TARGET = 'https://tinypesa.com/api/v1/express/initialize';
 const T = (process.env.TINYPESA_TARGET || '').trim();
-// Only accept TINYPESA_TARGET as the API endpoint if it is a tinypesa.com URL; otherwise use the default.
-const TINYPESA_URL = /^https:\/\/([a-z0-9-]+\.)*tinypesa\.com\//i.test(T) ? T : DEFAULT_TARGET;
+// Accept TINYPESA_TARGET if it is a tinypesa.com URL; a bare host gets the default API path appended.
+let TINYPESA_URL = DEFAULT_TARGET;
+if (/^https:\/\/([a-z0-9-]+\.)*tinypesa\.com(\/|$)/i.test(T)) {
+  const tu = new URL(T);
+  TINYPESA_URL = (tu.pathname === '/' || tu.pathname === '') ? tu.origin + '/api/v1/express/initialize' + tu.search : T;
+}
 if (T && TINYPESA_URL === DEFAULT_TARGET) console.log('TINYPESA_TARGET is not a tinypesa.com URL, using the default endpoint');
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
 const deposits = new Map();
@@ -176,12 +180,17 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
     const key = { Apikey: process.env.TINYPESA_API_KEY };
     const sep = TINYPESA_URL.includes('?') ? '&' : '?';
     // TinyPesa blocks some form-style posts as "cross-site", so try JSON first, then plain query-string parameters.
+    const origin = new URL(TINYPESA_URL).origin;   // TinyPesa rejects POSTs without a same-site Origin ("cross-site" 403)
+    const hdr = { ...key, Origin: origin, Referer: origin + '/' };
+    const asForm = new URLSearchParams(fields).toString();
     const attempts = [
-      () => postForm(TINYPESA_URL, { ...key, 'Content-Type': 'application/json' }, JSON.stringify(fields)),
-      () => postForm(TINYPESA_URL + sep + new URLSearchParams(fields).toString(), { ...key }, '')
+      () => postForm(TINYPESA_URL, { ...hdr, 'Content-Type': 'application/x-www-form-urlencoded' }, asForm),
+      () => postForm(TINYPESA_URL, { ...hdr, 'Content-Type': 'application/json' }, JSON.stringify(fields)),
+      () => postForm(TINYPESA_URL + sep + asForm, { ...hdr }, ''),
+      () => postForm(TINYPESA_URL.replace(/\/?$/, '/'), { ...hdr, 'Content-Type': 'application/x-www-form-urlencoded' }, asForm)
     ];
     let r;
-    for (const go of attempts) { r = await go(); if (r.ok) break; console.log('TinyPesa attempt failed ->', r.status, r.text.slice(0, 150)); }
+    for (const go of attempts) { r = await go(); if (r.ok) break; console.log('TinyPesa attempt failed ->', r.status, r.text.replace(/\s+/g, ' ').slice(0, 120)); }
     const raw = r.text;
     let j = {}; try { j = JSON.parse(raw); } catch {}
     console.log('TinyPesa initialize ->', r.status, new URL(TINYPESA_URL).pathname, raw.slice(0, 300));
