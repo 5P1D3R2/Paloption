@@ -172,9 +172,16 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
   const kes = Math.ceil(usd * KES_PER_USD);
   const id = crypto.randomUUID();
   try {
-    const r = await postForm(TINYPESA_URL,
-      { Apikey: process.env.TINYPESA_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-      new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id }).toString());
+    const fields = { amount: kes, msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id };
+    const key = { Apikey: process.env.TINYPESA_API_KEY };
+    const sep = TINYPESA_URL.includes('?') ? '&' : '?';
+    // TinyPesa blocks some form-style posts as "cross-site", so try JSON first, then plain query-string parameters.
+    const attempts = [
+      () => postForm(TINYPESA_URL, { ...key, 'Content-Type': 'application/json' }, JSON.stringify(fields)),
+      () => postForm(TINYPESA_URL + sep + new URLSearchParams(fields).toString(), { ...key }, '')
+    ];
+    let r;
+    for (const go of attempts) { r = await go(); if (r.ok) break; console.log('TinyPesa attempt failed ->', r.status, r.text.slice(0, 150)); }
     const raw = r.text;
     let j = {}; try { j = JSON.parse(raw); } catch {}
     console.log('TinyPesa initialize ->', r.status, new URL(TINYPESA_URL).pathname, raw.slice(0, 300));
