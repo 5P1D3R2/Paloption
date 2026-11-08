@@ -103,8 +103,8 @@ canvas{width:100%;height:100%}
 <div id="ov"></div>
 
 <script>
-const $=id=>document.getElementById(id);let tok=localStorage.pt||'',U=null,acc='demo',pts=[],lastD=null,W=0,L=0;
-async function api(p,b){const r=await fetch('/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw j.error||'Error';return j}
+const $=id=>document.getElementById(id);const API_BASE='https://YOUR-RENDER-URL.onrender.com';let tok=localStorage.pt||'',U=null,acc='demo',pts=[],lastD=null,W=0,L=0;
+async function api(p,b){const r=await fetch(API_BASE+'/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw j.error||'Error';return j}
 function go(v){['reg','login','app'].forEach(x=>$(x).classList.add('hide'));$(v=='register'?'reg':v).classList.remove('hide');history.replaceState(0,0,v=='app'?'/trade':'/'+v)}
 function session(j){tok=j.token;localStorage.pt=tok;U=j.user;go('app');init()}
 async function register(){$('rerr').textContent='';if($('rp').value!=$('rc').value)return $('rerr').textContent='Passwords do not match';if(!$('ra').checked)return $('rerr').textContent='You must confirm 18+ and accept the terms';try{session(await api('register',{name:$('rn').value,email:$('re').value,password:$('rp').value}))}catch(e){$('rerr').textContent=e}}
