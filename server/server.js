@@ -1,9 +1,10 @@
-// paloption.site - demo/real Even-Odd game. Same fair odds on both accounts.
+// paloption.site API - same fair odds for demo and real accounts.
 const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -21,22 +22,39 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
-const PAYOUT = 1.952;          // pays 1.952x on a 50% chance (disclosed in the UI)
-const WIN_CHANCE = 0.5;
-const users = new Map();       // in-memory; swap for MongoDB in production
+const RTP = 0.976;              // payout multiplier = RTP / win probability (same for every contract)
+const users = new Map();        // in-memory; swap for MongoDB in production
 
-let price = 9500;
-function nextTick() {
-  price += (crypto.randomInt(-100, 101) / 100) * 4;
-  const digit = crypto.randomInt(0, 10);
-  const p = Math.floor(price * 10) / 10 + digit / 100;
-  return { price: +p.toFixed(2), digit, t: Date.now() };
+// ---------- markets ----------
+const DEFS = [
+  ['R_10_1s', 'Volatility 10 (1s) Index', 'Vol 10 (1s)', 10, 1, 9500],
+  ['R_10', 'Volatility 10 Index', 'Vol 10', 10, 2, 6200],
+  ['R_15_1s', 'Volatility 15 (1s) Index', 'Vol 15 (1s)', 15, 1, 3300],
+  ['R_25_1s', 'Volatility 25 (1s) Index', 'Vol 25 (1s)', 25, 1, 2100],
+  ['R_25', 'Volatility 25 Index', 'Vol 25', 25, 2, 5400],
+  ['R_30_1s', 'Volatility 30 (1s) Index', 'Vol 30 (1s)', 30, 1, 1200],
+  ['R_50_1s', 'Volatility 50 (1s) Index', 'Vol 50 (1s)', 50, 1, 7800],
+  ['R_50', 'Volatility 50 Index', 'Vol 50', 50, 2, 4100],
+  ['R_75_1s', 'Volatility 75 (1s) Index', 'Vol 75 (1s)', 75, 1, 3900],
+  ['R_75', 'Volatility 75 Index', 'Vol 75', 75, 2, 640],
+  ['R_90_1s', 'Volatility 90 (1s) Index', 'Vol 90 (1s)', 90, 1, 8800],
+  ['R_100_1s', 'Volatility 100 (1s) Index', 'Vol 100 (1s)', 100, 1, 5200],
+  ['R_100', 'Volatility 100 Index', 'Vol 100', 100, 2, 2300]
+];
+const SYMS = DEFS.map(([id, name, short, vol, sec, base]) => ({ id, name, short, vol, sec, price: base, step: base * vol * 0.00004, ticks: [] }));
+const bySym = Object.fromEntries(SYMS.map(s => [s.id, s]));
+function makeTick(s, t) {
+  s.price = Math.max(10, s.price + (crypto.randomInt(-1000, 1001) / 1000) * s.step);
+  const digit = crypto.randomInt(0, 10);   // fair, independent digit for every tick
+  return { price: +(Math.floor(s.price * 10) / 10 + digit / 100).toFixed(2), digit, t, sym: s.id };
 }
-let lastTick = nextTick();
-const ticks = [lastTick];
-const pushTick = t => { ticks.push(t); if (ticks.length > 100) ticks.shift(); };
-setInterval(() => { lastTick = nextTick(); pushTick(lastTick); }, 1000);
+const push = (s, t) => { s.ticks.push(t); if (s.ticks.length > 500) s.ticks.shift(); };
+SYMS.forEach(s => { const now = Date.now(); for (let i = 500; i > 0; i--) push(s, makeTick(s, now - i * s.sec * 1000)); });
+let beat = 0;
+setInterval(() => { beat++; SYMS.forEach(s => { if (s.sec === 1 || beat % 2 === 0) push(s, makeTick(s, Date.now())); }); }, 1000);
+const pickSym = q => bySym[q] || SYMS[0];
 
+// ---------- auth ----------
 function auth(req, res, next) {
   try {
     const d = jwt.verify((req.headers.authorization || '').replace('Bearer ', ''), SECRET);
@@ -45,24 +63,22 @@ function auth(req, res, next) {
     next();
   } catch { res.status(401).json({ error: 'Unauthorized' }); }
 }
-const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 50), tx: (u.tx || []).slice(0, 50) });
+const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 100), tx: (u.tx || []).slice(0, 50) });
 
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !/^\S+@\S+\.\S+$/.test(email || '') || (password || '').length < 6)
     return res.status(400).json({ error: 'Check your details (password min 6 chars)' });
   if (users.has(email.toLowerCase())) return res.status(409).json({ error: 'Email already registered' });
-  const u = { name, email: email.toLowerCase(), hash: await bcrypt.hash(password, 10), demo: 10000, real: 0, history: [] };
+  const u = { name, email: email.toLowerCase(), hash: await bcrypt.hash(password, 10), demo: 10000, real: 0, history: [], tx: [] };
   users.set(u.email, u);
   res.json({ token: jwt.sign({ email: u.email }, SECRET, { expiresIn: '7d' }), user: pub(u) });
 });
-
 app.post('/api/login', async (req, res) => {
   const u = users.get(((req.body || {}).email || '').toLowerCase());
   if (!u || !(await bcrypt.compare(req.body.password || '', u.hash))) return res.status(401).json({ error: 'Invalid email or password' });
   res.json({ token: jwt.sign({ email: u.email }, SECRET, { expiresIn: '7d' }), user: pub(u) });
 });
-
 app.post('/api/account/name', auth, (req, res) => {
   const n = String((req.body || {}).name || '').trim().slice(0, 60);
   if (n.length < 2) return res.status(400).json({ error: 'Name too short' });
@@ -75,35 +91,56 @@ app.post('/api/account/password', auth, async (req, res) => {
   req.user.hash = await bcrypt.hash(newPassword, 10); res.json({ ok: true });
 });
 app.get('/api/me', auth, (req, res) => res.json(pub(req.user)));
-app.get('/api/tick', (req, res) => res.json(lastTick));
-app.get('/api/ticks', (req, res) => res.json(ticks));
-app.get('/api/odds', (req, res) => res.json({ winChance: WIN_CHANCE, payout: PAYOUT, note: 'Same odds for demo and real accounts.' }));
 
+// ---------- market data ----------
+app.get('/api/symbols', (req, res) => res.json(SYMS.map(({ id, name, short }) => ({ id, name, short }))));
+app.get('/api/tick', (req, res) => { const s = pickSym(req.query.symbol); res.json(s.ticks[s.ticks.length - 1]); });
+app.get('/api/ticks', (req, res) => res.json(pickSym(req.query.symbol).ticks));
+app.get('/api/odds', (req, res) => res.json({ rtp: RTP, note: 'Same odds for demo and real accounts.' }));
+
+// ---------- trading ----------
+function contract(kind, pick, digit) {
+  const b = Number(digit);
+  if (kind === 'eo' && (pick === 'even' || pick === 'odd'))
+    return { p: 0.5, label: pick === 'even' ? 'Even' : 'Odd', win: d => (d % 2 === 0) === (pick === 'even') };
+  if (kind === 'ou' && Number.isInteger(b)) {
+    if (pick === 'over' && b >= 0 && b <= 8) return { p: (9 - b) / 10, label: 'Over ' + b, win: d => d > b };
+    if (pick === 'under' && b >= 1 && b <= 9) return { p: b / 10, label: 'Under ' + b, win: d => d < b };
+  }
+  if (kind === 'md' && Number.isInteger(b) && b >= 0 && b <= 9) {
+    if (pick === 'match') return { p: 0.1, label: 'Match ' + b, win: d => d === b };
+    if (pick === 'differ') return { p: 0.9, label: 'Differ ' + b, win: d => d !== b };
+  }
+  return null;
+}
 app.post('/api/trade', auth, (req, res) => {
-  const { account, stake, pick } = req.body || {};
+  const { account, stake, kind, pick, digit, symbol } = req.body || {};
   const s = Math.round(Number(stake) * 100) / 100;
-  if (!['demo', 'real'].includes(account) || !['even', 'odd'].includes(pick) || !(s >= 0.1 && s <= 100))
+  const c = contract(kind, pick, digit);
+  if (!['demo', 'real'].includes(account) || !c || !(s >= 0.1 && s <= 100))
     return res.status(400).json({ error: 'Invalid trade (stake $0.10 - $100)' });
   const u = req.user;
   if (u[account] < s) return res.status(400).json({ error: 'Insufficient balance' });
-  const tick = nextTick(); lastTick = tick; pushTick(tick);
-  const win = (tick.digit % 2 === 0) === (pick === 'even');
-  const profit = win ? +(s * (PAYOUT - 1)).toFixed(4) : -s;
-  u[account] = +(u[account] + profit).toFixed(4);
-  u.history.unshift({ account, pick, stake: s, digit: tick.digit, win, profit, t: Date.now() });
+  const sy = pickSym(symbol);
+  const tick = makeTick(sy, Date.now()); push(sy, tick);
+  const win = c.win(tick.digit);
+  const payoutIfWin = +(s * RTP / c.p).toFixed(4);
+  const balStake = +(u[account] - s).toFixed(4);
+  const payout = win ? payoutIfWin : 0;
+  u[account] = +(balStake + payout).toFixed(4);
+  const profit = +(payout - s).toFixed(4);
+  u.history.unshift({ id: crypto.randomUUID(), account, sym: sy.id, kind, label: c.label, stake: s, potential: payoutIfWin, payout, profit, win, digit: tick.digit, balStake, balAfter: u[account], t: tick.t });
+  if (u.history.length > 300) u.history.pop();
   res.json({ win, profit, digit: tick.digit, tick, user: pub(u) });
 });
 
-// Payments: integrate M-Pesa (Daraja STK push) here. Credit only on the verified callback.
 // ---------- TinyPesa deposits (M-Pesa STK push) ----------
-// Env vars: TINYPESA_API_KEY, TINYPESA_ACCOUNT_NO, WEBHOOK_SECRET, KES_PER_USD (default 129)
-// In your TinyPesa dashboard set the callback URL to:
-//   https://paloption.site/api/tinypesa/callback/<WEBHOOK_SECRET>
+// Env: TINYPESA_API_KEY, TINYPESA_ACCOUNT_NO, WEBHOOK_SECRET, KES_PER_USD (default 129)
+// TinyPesa callback URL: https://YOUR-SERVER/api/tinypesa/callback/<WEBHOOK_SECRET>
 const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
-const deposits = new Map();     // id -> {email, usd, kes, phone, status, requestId}
-const seenReceipts = new Set(); // idempotency
-
+const deposits = new Map();
+const seenReceipts = new Set();
 const normPhone = p => { p = String(p || '').replace(/\D/g, ''); if (/^0[17]\d{8}$/.test(p)) p = '254' + p.slice(1); else if (/^[17]\d{8}$/.test(p)) p = '254' + p; return /^254[17]\d{8}$/.test(p) ? p : null; };
 
 app.post('/api/deposit/mpesa', auth, async (req, res) => {
@@ -125,15 +162,11 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
     res.json({ id, kes });
   } catch (e) { res.status(502).json({ error: 'Payment provider unreachable' }); }
 });
-
 app.get('/api/deposit/status/:id', auth, (req, res) => {
   const d = deposits.get(req.params.id);
   if (!d || d.email !== req.user.email) return res.status(404).json({ error: 'Not found' });
   res.json({ status: d.status, user: pub(req.user) });
 });
-
-// Callback format: handles Daraja-style (Body.stkCallback) and flat payloads. Check a real
-// callback in your TinyPesa dashboard/logs and adjust field names if needed.
 app.post('/api/tinypesa/callback/:secret', (req, res) => {
   res.sendStatus(200);
   if (!WEBHOOK_SECRET || req.params.secret !== WEBHOOK_SECRET) return;
@@ -145,7 +178,7 @@ app.post('/api/tinypesa/callback/:secret', (req, res) => {
   const amount = Number(items.Amount ?? cb.Amount ?? b.amount);
   const receipt = items.MpesaReceiptNumber || cb.MpesaReceiptNumber || b.mpesa_receipt || reqId;
   let hit = null;
-  for (const [id, d] of deposits) {
+  for (const [, d] of deposits) {
     if (d.status !== 'pending') continue;
     if ((reqId && d.requestId === reqId) || (!reqId && d.phone === phone && d.kes === amount)) { hit = d; break; }
   }
@@ -155,15 +188,14 @@ app.post('/api/tinypesa/callback/:secret', (req, res) => {
   if (receipt && seenReceipts.has(receipt)) return;
   if (receipt) seenReceipts.add(receipt);
   const u = users.get(hit.email);
-  if (u) { u.real = +(u.real + hit.usd).toFixed(2); hit.status = 'paid'; (u.tx = u.tx || []).unshift({ type: 'Deposit (M-Pesa)', usd: hit.usd, t: Date.now() }); }
+  if (u) { u.real = +(u.real + hit.usd).toFixed(4); hit.status = 'paid'; u.tx.unshift({ type: 'Deposit (M-Pesa)', usd: hit.usd, t: Date.now() }); }
 });
-
 app.post('/api/withdraw/mpesa', auth, (req, res) => res.status(501).json({ error: 'Withdrawals not configured yet.' }));
 
 const INDEX = path.join(__dirname, 'index.html');
-app.get('/', (req, res) => res.json({ ok: true, service: 'paloption.site API' }));
+app.get('/', (req, res) => fs.existsSync(INDEX) ? res.sendFile(INDEX) : res.json({ ok: true, service: 'paloption.site API' }));
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api/') && require('fs').existsSync(INDEX)) return res.sendFile(INDEX);
+  if (!req.path.startsWith('/api/') && fs.existsSync(INDEX)) return res.sendFile(INDEX);
   res.status(404).json({ error: 'Not found' });
 });
 app.listen(process.env.PORT || 3000, () => console.log('paloption.site running'));
