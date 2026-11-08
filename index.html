@@ -3,6 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PalOption</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#13111f;--bar:#1b1730;--card:#221d3b;--in:#181429;--line:#2e2750;--pu:#7c3aed;--tx:#fff;--mu:#8e89a8;--g:#22c55e;--r:#ff4757}
 body.light{--bg:#f4f3fa;--bar:#fff;--card:#fff;--in:#f0eef8;--line:#ddd8ee;--tx:#1a1530;--mu:#6b6785}
@@ -123,6 +124,41 @@ html,body{overflow-x:hidden;max-width:100%}
 .scres{margin-top:16px;border:1px solid #1f6f4a;background:#12281f;border-radius:14px;padding:14px;line-height:1.6;font-size:15px}
 .btn.ghost{background:none;border:1px solid var(--line);color:#6d4cc4;box-shadow:none;margin-top:12px}.btn.ghost:disabled{opacity:.6}
 .btn:disabled{opacity:.75}
+
+.dg{width:34px}.dg svg{width:34px;height:34px;border-radius:50%;background:#1d1838;transition:transform .3s,background .3s;overflow:visible}
+.dg .tk{fill:none;stroke:#2f2a52;stroke-width:2}
+.dg .ar{fill:none;stroke:transparent;stroke-width:2.6;stroke-linecap:round;stroke-dasharray:0 94.2;transition:stroke-dasharray .6s ease,stroke .4s}
+.dg.cur svg{transform:scale(1.22);background:color-mix(in srgb,var(--gl,#7c3aed) 28%,#1d1838);box-shadow:0 0 12px var(--gl,#7c3aed)}
+.dg .n{transition:transform .3s}.dg.cur .n{transform:scale(1.15)}
+.dg .mk{display:none;border-top-color:var(--gl,#f59e0b);bottom:-14px}
+.brow{display:flex;gap:6px;margin:12px 0 0}.bd{flex:1;text-align:center;padding:13px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:16px;color:var(--mu)}.bd.on{background:var(--pu);color:#fff;border-color:var(--pu)}
+.go .row{display:flex;justify-content:space-between;align-items:flex-start;width:100%}.go .r2{font-size:14px;font-weight:500;opacity:.9;margin-top:6px}
+.go .pt{font-size:16px;font-weight:600;text-align:right}
+.go button.stop{background:#f59e0b;display:flex;align-items:center;justify-content:center}.stp{font-size:22px;font-weight:700}
+.go button.dim{opacity:.35;pointer-events:none}
+.last.live{border-color:#f59e0b66;background:#2a2118}.ld{display:inline-block;width:11px;height:11px;border-radius:50%;background:#f59e0b;margin-right:8px}.lv{color:#f59e0b;font-weight:700}
+.load{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--mu);font-size:20px;background:#13111fcc;z-index:2}
+.spin.sm{width:56px;height:56px;border-width:5px;margin:0}
+.syml{position:absolute;left:16px;top:72px;width:78%;max-height:300px;overflow:auto;background:#1c1833;border:1px solid var(--line);border-radius:12px;z-index:6}
+.syml div{display:flex;align-items:center;gap:12px;padding:14px;color:#cfcae6;font-size:15px}.syml i{width:26px;height:26px;border-radius:7px;background:#2a2548;display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--mu)}
+.syml .on{background:#16343a;color:#2dd4bf}.syml em{margin-left:auto;width:9px;height:9px;border-radius:50%;background:#2dd4bf}
+.ptabs{display:flex;border-bottom:1px solid var(--line);background:var(--bar)}.ptab{flex:1;text-align:center;padding:16px 4px;color:var(--mu);font-weight:600;border-bottom:3px solid transparent}.ptab.on{color:#8b5cf6;border-color:#8b5cf6}
+#hist{padding:16px 16px 200px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}
+.pc .ph{display:flex;align-items:center;gap:14px}.pc .pi{width:48px;height:48px;border-radius:12px;background:#1e2a36;color:var(--g);display:grid;place-items:center;font-size:22px}
+.pc .pk{margin-left:auto;font-weight:600}.pk i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
+.pc .stt{margin:12px 0}.pc .usd{display:inline-block;background:#2a2548;border-radius:8px;padding:7px 12px;font-weight:700;margin-bottom:14px}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}.pg span{display:block;color:var(--mu);font-size:15px}.pg b{font-size:19px;font-weight:600}
+.gc{color:var(--g)}.rc2{color:var(--r)}
+.tr{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.ti{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:20px;flex:none}.ti.ok{background:#173a3a;color:var(--g)}.ti.bad{background:#3a1d33;color:var(--r)}.ti.stk{background:#3e2d2a;color:#f59e0b}
+.tm{flex:1;min-width:0;line-height:1.5}.tm b{font-size:18px}.tag{background:#2a2548;border-radius:8px;padding:3px 9px;font-size:13px;margin-left:6px;color:#cfcae6}.mu2{color:var(--mu);font-size:14px}
+.ta{text-align:right;line-height:1.5}.ta b{font-size:20px}
+.sess2{position:fixed;left:0;right:0;bottom:88px;background:#221d3b;border-top:1px solid var(--line);padding:14px 22px;color:var(--mu);font-size:17px}
+.sess2>div{display:flex;justify-content:space-between;margin:4px 0}.sess2 b{font-size:22px}
+.rc{width:128px;height:128px;border-radius:50%;margin:10px auto 22px;display:grid;place-items:center;font-size:56px}.rc.ok{background:#173a3a;color:var(--g)}.rc.bad{background:#3a1d33;color:var(--r)}
+.big{font-size:44px;font-weight:700;margin:14px 0 22px}
+.sbox{background:#1a2431;border-radius:16px;padding:18px;margin-bottom:24px;text-align:left}.sbox div{display:flex;justify-content:space-between;margin:9px 0;color:var(--mu);font-size:19px}.sbox b{color:#fff;font-weight:600}.sbox i{font-style:normal}
 </style></head><body>
 
 <div id="reg" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
@@ -151,25 +187,26 @@ html,body{overflow-x:hidden;max-width:100%}
 <div id="dd" class="dd hide"><div onclick="setAcc('demo')">Demo account</div><div onclick="setAcc('real')">Real account</div></div>
 
 <div id="vTrade">
-<div class="tabs"><div class="tab">◎ Matches/Differs</div><div class="tab on">▦ Even/Odd</div><div class="tab">⇅ Over/Under</div></div>
+<div class="tabs"><div class="tab" id="kmd" onclick="setKind('md')">◎ Matches/Differs</div><div class="tab on" id="keo" onclick="setKind('eo')">▦ Even/Odd</div><div class="tab" id="kou" onclick="setKind('ou')">⇅ Over/Under</div></div>
 <div class="chartbox"><canvas id="cv"></canvas>
-<div class="sym"><span>📊</span><div><b>Vol 10 (1s)</b><small id="pr">—</small></div><span style="color:var(--mu)">⌄</span></div>
-<div class="pct">100%</div><div class="zm"><div onclick="zoom(1)">+</div><div onclick="zoom(-1)">−</div></div><div id="axis"></div></div>
+<div class="sym" onclick="symMenu()"><span>📊</span><div><b id="symN">Vol 10 (1s)</b><small id="pr">0.00</small></div><span style="color:var(--mu)">⌄</span></div>
+<div class="pct">100%</div><div class="zm"><div onclick="zoom(1)">+</div><div onclick="zoom(-1)">−</div></div><div id="axis"></div>
+<div id="load" class="load"><div class="spin sm"></div>Loading data...</div><div id="syml" class="syml hide"></div></div>
 <div class="digits" id="dg"></div>
 <div class="wrap">
 <div class="seg"><div id="mA" class="on" onclick="setMode('auto')">AUTO</div><div id="mM" onclick="setMode('manual')">MANUAL</div></div>
-
 <div class="stake"><button onclick="adj(-1)">−</button><div class="f"><small>STAKE</small><input id="st" type="number" value="1" min="0.1" max="100" step="0.1"></div><button onclick="adj(1)">+</button></div>
 <div class="chips" id="chips"></div>
 <div class="trio" id="trio"><div><small style="color:var(--g)">TARGET PROFIT</small><input id="tp" type="number" value="50"></div><div><small style="color:var(--r)">STOP LOSS</small><input id="sl" type="number" value="50"></div><div><small style="color:#f59e0b">MULTIPLIER</small><input id="mu" type="number" value="1" min="1" max="2" step="0.1"></div></div>
-<div class="last"><span>LAST &nbsp;<span id="lastT">0T</span></span><b id="lastP">$0.00</b></div>
-<div class="go"><button class="even" id="bE" onclick="press('even')"><div class="row"><span>Even</span><span class="pt">$<span class="po">19.52</span><br>Payout</span></div><small>1.952×</small></button>
-<button class="odd" id="bO" onclick="press('odd')"><div class="row"><span>Odd</span><span class="pt">$<span class="po">19.52</span><br>Payout</span></div><small>1.952×</small></button></div>
-<p class="note">Win chance is 50% on both demo and real accounts: each tick's last digit is random and pays 1.952×. Digit percentages above are just recent frequencies and do not predict the next digit. Most traders lose money over time. Never stake money you can't afford to lose. 18+ only.</p>
+<div class="last" id="lastBox"></div>
+<div class="brow hide" id="brow"></div>
+<div class="go"><button class="even" id="bA" onclick="press('A')"></button><button class="odd" id="bB" onclick="press('B')"></button></div>
+<p class="note" id="chance"></p>
+<p class="note">Odds are the same on demo and real accounts: every tick's last digit is random and payouts are set from the true win chance (shown above). Digit percentages are just recent frequencies and do not predict the next digit. Most traders lose money over time. Never stake money you can't afford to lose. 18+ only.</p>
 </div></div>
 
-<div id="vPos" class="hide"><div class="tabs" style="padding:0;border-bottom:1px solid var(--line)"><div class="tab on" id="p0" onclick="ptab(0)" style="flex:1;text-align:center;border-radius:0">Open (0)</div><div class="tab" id="p1" onclick="ptab(1)" style="flex:1;text-align:center;border-radius:0">Closed (0)</div><div class="tab" id="p2" onclick="ptab(2)" style="flex:1;text-align:center;border-radius:0">Transactions</div></div><div id="hist"></div>
-<div class="sess"><span>Session P/L:</span><b id="sessPL">+0.00 USD</b></div></div>
+<div id="vPos" class="hide"><div class="ptabs"><div id="p0" class="ptab" onclick="ptab(0)">Open (0)</div><div id="p1" class="ptab on" onclick="ptab(1)">Closed (0)</div><div id="p2" class="ptab" onclick="ptab(2)">Transactions</div></div><div id="hist"></div>
+<div class="sess2"><div><span>Last Session</span><span id="sA"></span></div><div><span>Session P/L:</span><b id="sB"></b></div></div></div>
 
 <div class="nav"><div id="nT" class="on" onclick="view('Trade')"><i>📊</i>Trade</div><div class="ai" onclick="scan()"><i>✦</i>Scanner</div><div id="nP" onclick="view('Pos')"><i>🕒</i>Positions</div></div>
 </div>
@@ -178,42 +215,13 @@ html,body{overflow-x:hidden;max-width:100%}
 <script>
 const API_BASE='https://paloption-a0ax.onrender.com';
 const $=id=>document.getElementById(id);
-let tok=localStorage.pt||'',U=null,acc='demo',mode='auto',snd=true,pts=[],digs=[],lastT=0,W=0,L=0,sess=0,zm=60,tabP=1,auto=null;
+let tok=localStorage.pt||'',U=null,acc='demo',mode='auto',snd=true,pts=[],tms=[],digs=[],lastT=0,zm=60,tabP=1,auto=null,kind='eo',barrier=5,sym='R_10_1s',SYMS=[],RTP=0.976,lastRes=null,poll=null,lastRun={n:0,w:0,l:0,pl:0},sess={demo:{n:0,w:0,pl:0},real:{n:0,w:0,pl:0}};
 async function api(p,b){const r=await fetch(API_BASE+'/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw j.error||'Error';return j}
 function go(v){['reg','login','app'].forEach(x=>$(x).classList.add('hide'));$(v=='register'?'reg':v).classList.remove('hide');location.hash=v=='app'?'trade':v}
 function session(j){tok=j.token;localStorage.pt=tok;U=j.user;go('app');init()}
 async function register(){$('rerr').textContent='';if($('rp').value!=$('rc').value)return $('rerr').textContent='Passwords do not match';if(!$('ra').checked)return $('rerr').textContent='Please confirm you are 18+ and accept the terms';try{session(await api('register',{name:$('rn').value,email:$('re').value,password:$('rp').value}))}catch(e){$('rerr').textContent=e}}
 async function login(){try{session(await api('login',{email:$('le').value,password:$('lp').value}))}catch(e){$('lerr').textContent=e}}
-function money(){$('bal').textContent='$'+U[acc].toFixed(2);$('accL').textContent=acc=='demo'?'D':'R'}
-function setAcc(a){acc=a;$('dd').classList.add('hide');money()}
-function ddt(){$('dd').innerHTML=`<div onclick="setAcc('demo')">Demo account &nbsp;<b>$${U.demo.toFixed(2)}</b></div><div onclick="setAcc('real')">Real account &nbsp;<b>$${U.real.toFixed(2)}</b></div>`;$('dd').classList.toggle('hide')}
-function setMode(m){mode=m;$('mA').className=m=='auto'?'on':'';$('mM').className=m=='manual'?'on':'';$('trio').classList.toggle('hide',m!='auto');stopAuto()}
-function adj(d){const v=+$('st').value||1,s=d>0?(v<1?.1:v<10?1:5):(v<=1?.1:v<=10?1:5);$('st').value=Math.min(100,Math.max(.1,Math.round((v+d*s)*100)/100));pay()}
-function pay(){document.querySelectorAll('.po').forEach(e=>e.textContent=($('st').value*1.952).toFixed(2));[...$('chips').children].forEach(c=>c.classList.toggle('on',c.dataset.v==$('st').value))}
-function view(v){$('vTrade').classList.toggle('hide',v!='Trade');$('vPos').classList.toggle('hide',v!='Pos');$('nT').className=v=='Trade'?'on':'';$('nP').className=v=='Pos'?'on':'';if(v=='Pos')ptab(tabP)}
-function ptab(i){tabP=i;[0,1,2].forEach(k=>$('p'+k).className='tab'+(k==i?' on':''));$('p1').textContent='Closed ('+U.history.length+')';
-$('hist').innerHTML=i==1&&U.history.length?U.history.map(h=>`<div class="pos"><span>${h.pick.toUpperCase()} · ${h.account} · digit ${h.digit}</span><b style="color:${h.win?'var(--g)':'var(--r)'}">${h.win?'+':''}$${h.profit.toFixed(2)}</b></div>`).join(''):i==2&&U.tx&&U.tx.length?U.tx.map(x=>`<div class="pos"><span>${x.type}</span><b style="color:var(--g)">+$${x.usd.toFixed(2)}</b></div>`).join(''):`<div class="empty"><div class="c">◎</div><b style="color:var(--tx);font-size:22px">${i==0?'No open positions':i==1?'No closed positions':'No transactions'}</b><p style="margin-top:10px">${i==0?'Your active trades will appear here':'Nothing here yet'}</p></div>`;
-$('sessPL').textContent=(sess>=0?'+':'')+sess.toFixed(2)+' USD';$('sessPL').style.color=sess>=0?'var(--g)':'var(--r)'}
 function toast(t,ok){const d=document.createElement('div');d.className='toast';d.style.background=ok?'var(--g)':'var(--r)';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
-async function doTrade(pick,stake){const j=await api('trade',{account:acc,stake,pick});U=j.user;money();addTick(j.tick);j.win?W++:L++;if(acc=='real'||true)sess+=j.profit;$('lastT').textContent=`${W+L}T · ${W}W · ${L}L`;$('lastP').textContent=(j.profit>=0?'+':'-')+'$'+Math.abs(j.profit).toFixed(2);$('lastP').style.color=j.profit>=0?'var(--g)':'var(--r)';return j}
-async function press(pick){if(auto){stopAuto();return}
-const base=Math.min(100,Math.max(.1,Math.round((+$('st').value||1)*100)/100));
-if(mode=='manual'){try{const j=await doTrade(pick,base);toast(j.win?'Won +$'+j.profit.toFixed(2):'Lost $'+Math.abs(j.profit).toFixed(2),j.win)}catch(e){toast(e,0)}return}
-auto={pick,pl:0,stake:base,base};(pick=='even'?$('bE'):$('bO')).querySelector('span').textContent='Stop';runAuto()}
-async function runAuto(){if(!auto)return;const tp=+$('tp').value||0,sl=+$('sl').value||0,m=Math.min(2,Math.max(1,+$('mu').value||1));
-try{const j=await doTrade(auto.pick,auto.stake);auto.pl+=j.profit;auto.stake=j.win?auto.base:Math.min(100,+(auto.stake*m).toFixed(2));
-if(tp&&auto.pl>=tp){toast('Target profit reached',1);return stopAuto()}if(sl&&auto.pl<=-sl){toast('Stop loss reached',0);return stopAuto()}
-setTimeout(runAuto,1500)}catch(e){toast(e,0);stopAuto()}}
-function stopAuto(){auto=null;const e=document.querySelector('#bE span'),o=document.querySelector('#bO span');if(e)e.textContent='Even';if(o)o.textContent='Odd'}
-function addTick(t){if(t.t<=lastT)return;lastT=t.t;pts.push(t.price);digs.push(t.digit);if(pts.length>200)pts.shift();if(digs.length>100)digs.shift();$('pr').textContent=t.price.toFixed(2)+'  '+((t.price/pts[0]-1)*100>=0?'+':'')+((t.price/pts[0]-1)*100).toFixed(2)+'%';plot();rings(t.digit)}
-function rings(cur){const c=Array(10).fill(0);digs.forEach(d=>c[d]++);const n=digs.length||1,f=c.map(x=>x/n),mx=Math.max(...f),mn=Math.min(...f);
-$('dg').innerHTML=f.map((v,i)=>{const col=v==mx?'#22c55e':v==mn?'#ff4757':'#3b3560',len=Math.min(1,v/.2)*94.2;return `<div class="dg"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="none" stroke="#2a2548" stroke-width="2"/><circle cx="17" cy="17" r="15" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${len} 94.2" transform="rotate(-90 17 17)"/></svg><div class="n"><b>${i}</b><small>${(v*100).toFixed(1)}%</small></div>${i==cur?'<span class="mk"></span>':''}</div>`}).join('')}
-function zoom(d){zm=Math.min(150,Math.max(20,zm+d*15));plot()}
-function plot(){const c=$('cv'),x=c.getContext('2d'),W2=c.width=c.clientWidth*2,H=c.height=c.clientHeight*2;x.clearRect(0,0,W2,H);const p=pts.slice(-zm);if(p.length<2)return;const mn=Math.min(...p),mx=Math.max(...p),r=(mx-mn)||1,px=i=>i/(p.length-1)*W2*.78,py=v=>H*.88-(v-mn)/r*H*.62;
-x.fillStyle='#ffffff10';x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.lineTo(px(p.length-1),H);x.lineTo(0,H);x.fill();
-x.strokeStyle='#e5e7eb';x.lineWidth=3;x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();
-const lx=px(p.length-1),ly=py(p[p.length-1]);x.fillStyle='#fff';x.beginPath();x.arc(lx,ly,8,0,7);x.fill();
-$('axis').innerHTML=[0,1,2,3].map(k=>`<div style="position:absolute;right:8px;top:${(H*.88-(k/3)*(H*.62))/2-8}px;color:var(--mu);font-size:13px">${(mn+r*k/3).toFixed(2)}</div>`).join('')+`<div class="ptag" style="top:${ly/2}px">${p[p.length-1].toFixed(2)}</div>`}
 let accOpen=false;
 function menu(o){$('ov').innerHTML=o?`<div class="side" onclick="menu(0)"><div onclick="event.stopPropagation()"><div class="hd"><span>✕ &nbsp;&nbsp;Menu</span><span style="font-size:15px">🇬🇧 EN</span></div><div class="me"><div class="av">${U.name[0].toUpperCase()}</div><div><b style="font-size:20px">${U.name}</b><br><span style="color:var(--mu)">${U.email.replace(/^(.{2}).*(.{2}@.*)$/,'$1***$2')}</span></div></div>
 <div class="it" style="gap:16px;justify-content:flex-start"><span class="mi">P</span>PalOption</div>
@@ -244,8 +252,68 @@ function pm(k){const d=k=='dep';$('pf').innerHTML=`<p style="color:var(--mu);mar
 async function pay2(k){try{if(k!='dep'){await api('withdraw/mpesa',{amount:+$('pa').value});return}
 const r=await api('deposit/mpesa',{amount:+$('pa').value,phone:$('pp').value});modal(`<div style="text-align:center"><div class="spin"></div><h2>Processing Payment</h2><p style="color:var(--mu);margin:12px 0">Please check your phone and enter your M-Pesa PIN to complete the payment.</p><p style="color:var(--mu);font-size:13px">Your balance will be updated automatically once the payment is confirmed.</p><button class="btn" style="background:none;border:1px solid var(--line);color:var(--mu);box-shadow:none" onclick="menu(0)">Close &amp; Check Later</button></div>`,1);
 for(let i=0;i<60;i++){await new Promise(z=>setTimeout(z,3000));const s=await api('deposit/status/'+r.id);if(s.status!='pending'){U=s.user;money();menu(0);return toast(s.status=='paid'?'Deposit received':'Payment failed or cancelled',s.status=='paid')}}}catch(e){toast(e,0)}}
-async function init(){money();$('chips').innerHTML=[0.1,1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');pay();$('st').oninput=pay;
-try{(await api('ticks')).forEach(addTick)}catch{}
-setInterval(async()=>{try{addTick(await api('tick'))}catch{}},1000)}
+
+const fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function money(){$('bal').textContent='$ '+fmt(U[acc]);$('bal').style.color=acc=='demo'?'var(--r)':'#a78bfa';$('accL').textContent=acc=='demo'?'D':'R';$('accL').style.background=acc=='demo'?'var(--r)':'var(--pu)'}
+function setAcc(a){stopAuto();acc=a;$('dd').classList.add('hide');money();if(!$('vPos').classList.contains('hide'))ptab(tabP)}
+function ddt(){$('dd').innerHTML=`<div onclick="setAcc('demo')">Demo account &nbsp;<b>$${fmt(U.demo)}</b></div><div onclick="setAcc('real')">Real account &nbsp;<b>$${fmt(U.real)}</b></div>`;$('dd').classList.toggle('hide')}
+function setMode(m){mode=m;$('mA').className=m=='auto'?'on':'';$('mM').className=m=='manual'?'on':'';$('trio').classList.toggle('hide',m!='auto');stopAuto()}
+function adj(d){const v=+$('st').value||1,s=d>0?(v<1?.1:v<10?1:5):(v<=1?.1:v<=10?1:5);$('st').value=Math.min(100,Math.max(.1,Math.round((v+d*s)*100)/100));pay()}
+function pay(){updateBtns();[...$('chips').children].forEach(c=>c.classList.toggle('on',+c.dataset.v==+$('st').value))}
+function sides(){if(kind=='eo')return[{n:'Even',p:.5,ok:1,pick:'even'},{n:'Odd',p:.5,ok:1,pick:'odd'}];
+if(kind=='ou')return[{n:'Over',p:(9-barrier)/10,ok:barrier<=8,pick:'over'},{n:'Under',p:barrier/10,ok:barrier>=1,pick:'under'}];
+return[{n:'Match',p:.1,ok:1,pick:'match'},{n:'Differ',p:.9,ok:1,pick:'differ'}]}
+function updateBtns(){const st=+$('st').value||0,S=sides();['A','B'].forEach((k,i)=>{if(auto&&auto.side==k)return;const s=S[i],m=s.ok?RTP/s.p:0,b=$('b'+k);b.classList.remove('stop','dim');
+b.innerHTML=`<div class="row"><span>${s.n}</span><span class="pt">$${(st*m).toFixed(2)}</span></div><div class="row r2"><span>${s.ok?((m-1)*100).toFixed(1)+'%':'n/a'}</span><span>Payout</span></div>`;b.style.opacity=s.ok?'':'.4'});
+$('chance').textContent=S.map(s=>`${s.n} ${(s.p*100).toFixed(0)}%`).join(' · ')+' win chance'}
+function setKind(k){stopAuto();kind=k;['md','eo','ou'].forEach(x=>$('k'+x).classList.toggle('on',x==k));$('brow').classList.toggle('hide',k=='eo');if(k=='ou')barrier=Math.min(8,Math.max(1,barrier));drawBrow();updateBtns()}
+function drawBrow(){$('brow').innerHTML=[...Array(10).keys()].map(i=>`<div class="bd${i==barrier?' on':''}" onclick="barrier=${i};drawBrow();updateBtns()">${i}</div>`).join('')}
+function setLast(){const l=auto,r=l||lastRun,pl=r.pl||0;$('lastBox').classList.toggle('live',!!l);$('lastBox').innerHTML=`<span>${l?'<i class="ld"></i><span class="lv">LIVE</span> &nbsp;':'LAST &nbsp;'}${r.n}T · ${r.w}W · ${r.l}L</span><b style="color:${pl>=0?'var(--g)':'var(--r)'}">${pl>=0?'+':'-'}$${Math.abs(pl).toFixed(2)}</b>`}
+async function doTrade(pick,stake,digit){const j=await api('trade',{account:acc,stake,kind,pick,digit,symbol:sym});U=j.user;money();addTick(j.tick);lastRes=j.win;const s=sess[acc];s.n++;if(j.win)s.w++;s.pl+=j.profit;rings();return j}
+async function press(k){if(auto){if(auto.side==k)stopAuto();return}
+const s=sides()[k=='A'?0:1];if(!s.ok)return toast('Pick a different digit',0);
+const base=Math.min(100,Math.max(.1,Math.round((+$('st').value||1)*100)/100));
+if(mode=='manual'){try{const j=await doTrade(s.pick,base,barrier);lastRun={n:1,w:j.win?1:0,l:j.win?0:1,pl:j.profit};setLast();toast(j.win?'Won +$'+j.profit.toFixed(2):'Lost $'+Math.abs(j.profit).toFixed(2),j.win)}catch(e){toast(e,0)}return}
+auto={side:k,pick:s.pick,digit:barrier,pl:0,n:0,w:0,l:0,stake:base,base};showLive();runAuto()}
+function showLive(){const a=auto;if(!a)return;['A','B'].forEach(k=>{const b=$('b'+k);if(k==a.side){b.classList.add('stop');b.innerHTML='<div class="stp">■ &nbsp;STOP</div>'}else b.classList.add('dim')});setLast()}
+async function runAuto(){const a=auto;if(!a)return;const tp=+$('tp').value||0,sl=+$('sl').value||0,m=Math.min(2,Math.max(1,+$('mu').value||1));
+try{const j=await doTrade(a.pick,a.stake,a.digit);if(auto!==a)return;a.n++;j.win?a.w++:a.l++;a.pl=+(a.pl+j.profit).toFixed(4);lastRun={n:a.n,w:a.w,l:a.l,pl:a.pl};setLast();
+a.stake=j.win?a.base:Math.min(100,+(a.stake*m).toFixed(2));
+if(tp&&a.pl>=tp)return finish(true,a);if(sl&&a.pl<=-sl)return finish(false,a);
+setTimeout(runAuto,1500)}catch(e){toast(e,0);stopAuto()}}
+function stopAuto(){auto=null;if($('bA')){updateBtns();setLast()}}
+function finish(ok,a){stopAuto();modal(`<div style="text-align:center"><div class="rc ${ok?'ok':'bad'}">${ok?'✓':'✕'}</div><h2 class="${ok?'gc':'rc2'}" style="font-size:30px">${ok?'Target Profit Hit! 🎉':'Stop Loss Hit'}</h2><div class="big ${a.pl>=0?'gc':'rc2'}">${a.pl>=0?'+':''}${a.pl.toFixed(2)} USD</div><div class="sbox"><div><span>Total Trades:</span><b>${a.n}</b></div><div><span>Wins / Losses:</span><b><i class="gc">${a.w}W</i> / <i class="rc2">${a.l}L</i></b></div><div><span>Win Rate:</span><b>${(a.w/a.n*100).toFixed(1)}%</b></div></div><button class="btn" style="margin:0;background:${ok?'#22c55e':'#ff4757'};box-shadow:none" onclick="menu(0)">Close</button></div>`,1)}
+function addTick(t){if(!t||t.t<=lastT||(t.sym&&t.sym!==sym))return;lastT=t.t;pts.push(t.price);tms.push(t.t);digs.push(t.digit);if(pts.length>500){pts.shift();tms.shift()}if(digs.length>500)digs.shift();
+const p0=pts[Math.max(0,pts.length-zm)],ch=(t.price/p0-1)*100;$('pr').textContent=t.price.toFixed(2)+'  '+(ch>=0?'+':'')+ch.toFixed(2)+'%';$('pr').style.color=ch>=0?'var(--g)':'var(--r)';
+$('load').classList.toggle('hide',pts.length>1);plot();rings()}
+function ringsInit(){$('dg').innerHTML=[...Array(10).keys()].map(i=>`<div class="dg" id="d${i}"><svg viewBox="0 0 34 34"><circle class="tk" cx="17" cy="17" r="15"/><circle class="ar" id="a${i}" cx="17" cy="17" r="15" transform="rotate(-90 17 17)"/></svg><div class="n"><b>${i}</b><small id="f${i}">10.0%</small></div><span class="mk"></span></div>`).join('')}
+function rings(){const n=digs.length||1,c=Array(10).fill(0);digs.forEach(d=>c[d]++);const f=c.map(x=>x/n),mx=Math.max(...f),mn=Math.min(...f),cur=digs[digs.length-1],gl=lastRes===true?'#22c55e':lastRes===false?'#ff4757':'#7c3aed';
+f.forEach((v,i)=>{$('f'+i).textContent=(v*100).toFixed(1)+'%';const a=$('a'+i);let col='transparent',len=0;
+if(digs.length>20&&mx>mn){if(v==mx){col='#22c55e';len=94.2*Math.min(.55,.14+(v-.1)*5)}else if(v==mn){col='#ff4757';len=94.2*Math.min(.55,.14+(.1-v)*5)}}
+a.style.stroke=col;a.style.strokeDasharray=len+' 94.2';const d=$('d'+i);d.classList.toggle('cur',i===cur);d.style.setProperty('--gl',gl);d.querySelector('.mk').style.display=i===cur?'block':'none'})}
+function zoom(d){zm=Math.min(300,Math.max(20,zm+d*20));plot()}
+function plot(){const c=$('cv'),x=c.getContext('2d'),W2=c.width=c.clientWidth*2,H=c.height=c.clientHeight*2;x.clearRect(0,0,W2,H);const p=pts.slice(-zm),tm=tms.slice(-zm);if(p.length<2)return;
+const mn=Math.min(...p),mx=Math.max(...p),r=(mx-mn)||1,px=i=>i/(p.length-1)*W2*.78,py=v=>H*.78-(v-mn)/r*H*.5;
+x.fillStyle='#ffffff10';x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.lineTo(px(p.length-1),H);x.lineTo(0,H);x.fill();
+x.strokeStyle='#e5e7eb';x.lineWidth=3;x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();
+const lx=px(p.length-1),ly=py(p[p.length-1]);x.fillStyle='#fff';x.beginPath();x.arc(lx,ly,8,0,7);x.fill();
+$('axis').innerHTML=[0,1,2,3].map(k=>`<div style="position:absolute;right:8px;top:${py(mn+r*k/3)/2-8}px;color:var(--mu);font-size:12px">${(mn+r*k/3).toFixed(2)}</div>`).join('')+[.12,.36,.6,.84].map(fr=>{const i=Math.round(fr*(p.length-1));return `<div style="position:absolute;bottom:5px;left:${px(i)/2-30}px;width:60px;text-align:center;color:var(--mu);font-size:12px">${new Date(tm[i]).toTimeString().slice(0,8)}</div>`}).join('')+`<div class="ptag" style="top:${ly/2}px">${p[p.length-1].toFixed(2)}</div>`}
+function symMenu(){const el=$('syml');el.classList.toggle('hide');el.innerHTML=SYMS.map(s=>`<div class="${s.id==sym?'on':''}" onclick="pickSym('${s.id}')"><i>▮</i>${s.name}${s.id==sym?'<em></em>':''}</div>`).join('')}
+function pickSym(id){$('syml').classList.add('hide');stopAuto();loadSym(id)}
+async function loadSym(id){sym=id;pts=[];tms=[];digs=[];lastT=0;lastRes=null;$('load').classList.remove('hide');const s=SYMS.find(x=>x.id==id);$('symN').textContent=s?s.short:id;try{(await api('ticks?symbol='+id)).forEach(addTick)}catch{}rings()}
+const when=t=>{const d=new Date(t),tt=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});return(d.toDateString()==new Date().toDateString()?'Today ':d.toLocaleDateString()+' ')+tt};
+const sname=id=>{const s=SYMS.find(x=>x.id==id);return s?s.name:id},stag=id=>{const s=SYMS.find(x=>x.id==id);return s?s.short.replace('Vol ','V'):id};
+function ptab(i){tabP=i;[0,1,2].forEach(k=>$('p'+k).className='ptab'+(k==i?' on':''));const H=U.history.filter(h=>h.account==acc);$('p1').textContent='Closed ('+H.length+')';let out='';
+if(i==1)out=H.map(h=>{const nm=sname(h.sym).replace(' Index',''),first=/^(Even|Over|Match)/.test(h.label);return `<div class="pc"><div class="ph"><span class="pi">↗</span><div><b style="font-size:20px">${nm}</b><br><span style="color:var(--mu)">Index</span></div><span class="pk ${first?'gc':'rc2'}"><i style="background:${first?'var(--g)':'var(--r)'}"></i>${h.label}</span></div><div class="stt ${h.win?'gc':'rc2'}">Closed</div><span class="usd">USD</span><div class="pg"><div><span>Total profit/loss:</span><b class="${h.win?'gc':'rc2'}">${h.profit>=0?'+':''}${h.profit.toFixed(2)}</b></div><div><span>Contract value:</span><b class="${h.win?'gc':'rc2'}">${h.payout.toFixed(2)}</b></div><div><span>Stake:</span><b>${h.stake.toFixed(2)}</b></div><div><span>Potential payout:</span><b>${h.potential.toFixed(2)}</b></div></div></div>`}).join('');
+if(i==2){const it=[];H.forEach(h=>{it.push({t:h.t+1,html:`<div class="tr"><span class="ti ${h.win?'ok':'bad'}">${h.win?'↗':'↘'}</span><div class="tm"><b class="${h.win?'gc':'rc2'}">Closed</b><span class="tag">${stag(h.sym)}</span><br><span class="mu2">${h.label.toUpperCase()} • ${when(h.t)}</span></div><div class="ta"><b class="${h.win?'gc':'rc2'}">${h.win?'+':''}${h.payout.toFixed(2)}</b><br><span class="mu2">Bal: ${h.balAfter.toFixed(2)}</span></div></div>`});
+it.push({t:h.t,html:`<div class="tr"><span class="ti stk">↘</span><div class="tm"><b>Stake</b><span class="tag">${stag(h.sym)}</span><br><span class="mu2">${h.label.toUpperCase()} • ${when(h.t)}</span></div><div class="ta"><b style="color:#f59e0b">-${h.stake.toFixed(2)}</b><br><span class="mu2">Bal: ${h.balStake.toFixed(2)}</span></div></div>`})});
+if(acc=='real')(U.tx||[]).forEach(x=>it.push({t:x.t,html:`<div class="tr"><span class="ti ok">↙</span><div class="tm"><b class="gc">Deposit</b><br><span class="mu2">${x.type} • ${when(x.t)}</span></div><div class="ta"><b class="gc">+${x.usd.toFixed(2)}</b></div></div>`}));
+out=it.sort((a,b)=>b.t-a.t).map(x=>x.html).join('')}
+$('hist').innerHTML=out||`<div class="empty"><div class="c">◎</div><b style="color:var(--tx);font-size:22px">${i==0?'No open positions':i==1?'No closed positions':'No transactions'}</b><p style="margin-top:10px">${i==0?'Your active trades will appear here':'Nothing here yet'}</p></div>`;
+const s=sess[acc];$('sA').textContent=`${s.n} trades (${s.w}W / ${s.n-s.w}L)`;$('sB').textContent=(s.pl>=0?'+':'')+s.pl.toFixed(2)+' USD';$('sB').style.color=s.pl>=0?'var(--g)':'var(--r)'}
+function view(v){$('vTrade').classList.toggle('hide',v!='Trade');$('vPos').classList.toggle('hide',v!='Pos');$('nT').className=v=='Trade'?'on':'';$('nP').className=v=='Pos'?'on':'';if(v=='Pos')ptab(tabP)}
+async function init(){money();try{RTP=(await api('odds')).rtp}catch{}try{SYMS=await api('symbols')}catch{}ringsInit();
+$('chips').innerHTML=[0.1,1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');$('st').oninput=pay;
+setKind('eo');setLast();await loadSym(sym);if(!poll)poll=setInterval(async()=>{try{addTick(await api('tick?symbol='+sym))}catch{}},1000)}
 (async()=>{if(tok){try{U=await api('me');go('app');init();return}catch{}}go(location.hash=='#register'?'register':'login')})();
 </script></body></html>
