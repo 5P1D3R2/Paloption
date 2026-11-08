@@ -98,6 +98,31 @@ body.light .sw{background:#bbb}body.light .sw:after{right:auto;left:4px}
 .sess{position:fixed;bottom:84px;left:0;right:0;background:var(--card);padding:16px 22px;color:var(--mu);border-top:1px solid var(--line)}
 .sess b{float:right;color:var(--g);font-size:20px}
 .spin{width:80px;height:80px;border-radius:50%;border:8px solid #33265f;border-top-color:#8b5cf6;margin:10px auto 20px;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+
+html,body{overflow-x:hidden;max-width:100%}
+.top{gap:8px;padding:12px 10px}
+.top .ib{width:38px;height:38px;font-size:16px}
+.top .ib.plain{background:none;color:var(--mu);width:28px;font-size:22px}
+.pill{max-width:none;min-width:0;padding:5px 8px;gap:8px}
+.pill .c{width:28px;height:28px;font-size:13px}
+#bal{font-size:15px;white-space:nowrap}
+.dep{padding:11px 13px;font-size:15px;flex:none}
+.dd{left:60px;top:64px;min-width:230px}
+.tab{padding:9px 15px;font-size:15px}
+.stake input{font-size:26px}.stake button{width:56px}
+.chip{font-size:13px;padding:10px 0}
+.go button{font-size:24px;padding:14px}
+.nav .ai i{width:64px;height:64px;margin-top:-26px;font-size:26px}
+.sch{display:flex;align-items:center;gap:14px;font-size:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.sch b{flex:1}.sci{width:44px;height:44px;border-radius:12px;background:#33265f;border:1px solid #5b3fc4;display:grid;place-items:center;color:#a78bfa}.scx{color:var(--mu);font-size:22px}
+.scb{padding-top:18px}
+.scinfo{background:var(--in);border-radius:14px;padding:16px;color:var(--mu);line-height:1.55;font-size:15px}.scinfo b{color:var(--tx)}
+.scsel{width:100%;padding:16px;background:var(--in);border:1px solid var(--line);border-radius:14px;color:var(--tx);font-size:17px}
+.scrow{display:flex;justify-content:space-between;margin:20px 0 10px;color:var(--mu);font-weight:600}.scrow b{color:var(--tx)}
+.scbar{height:12px;border-radius:6px;background:#2a2548;overflow:hidden}.scbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#8b5cf6);transition:width .15s}
+.scres{margin-top:16px;border:1px solid #1f6f4a;background:#12281f;border-radius:14px;padding:14px;line-height:1.6;font-size:15px}
+.btn.ghost{background:none;border:1px solid var(--line);color:#6d4cc4;box-shadow:none;margin-top:12px}.btn.ghost:disabled{opacity:.6}
+.btn:disabled{opacity:.75}
 </style></head><body>
 
 <div id="reg" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
@@ -119,9 +144,9 @@ body.light .sw{background:#bbb}body.light .sw:after{right:auto;left:4px}
 
 <div id="app" class="hide">
 <div class="banner" id="bn"><div class="ic">⬇</div><div class="t"><b>Add PalOption to Home Screen</b><small>Get a better trading experience</small></div><button onclick="toast('Use your browser menu → Add to Home screen',1)">Install</button><span onclick="$('bn').remove()" style="font-size:22px">✕</span></div>
-<div class="top"><div class="ib g" onclick="menu(1)">☰</div><div class="ib">P</div>
+<div class="top"><div class="ib plain" onclick="menu(1)">☰</div><div class="ib">P</div>
 <div class="pill" onclick="ddt()"><div class="c" id="accL">D</div><span id="bal">$0.00</span><span style="color:var(--mu)">⌄</span></div>
-<div class="ib g" onclick="snd=!snd;toast(snd?'Sound on':'Sound off',1)">🔊</div>
+<div class="ib plain" onclick="snd=!snd;toast(snd?'Sound on':'Sound off',1)">🔊</div>
 <button class="dep" onclick="sheet('dep')">Deposit</button></div>
 <div id="dd" class="dd hide"><div onclick="setAcc('demo')">Demo account</div><div onclick="setAcc('real')">Real account</div></div>
 
@@ -133,8 +158,8 @@ body.light .sw{background:#bbb}body.light .sw:after{right:auto;left:4px}
 <div class="digits" id="dg"></div>
 <div class="wrap">
 <div class="seg"><div id="mA" class="on" onclick="setMode('auto')">AUTO</div><div id="mM" onclick="setMode('manual')">MANUAL</div></div>
-<div class="seg" style="margin-top:12px"><div id="aD" class="on" onclick="setAcc('demo')">DEMO</div><div id="aR" onclick="setAcc('real')">REAL</div></div>
-<div class="stake"><button onclick="adj(-1)">−</button><div class="f"><small>STAKE</small><input id="st" type="number" value="10" min="1" max="100"></div><button onclick="adj(1)">+</button></div>
+
+<div class="stake"><button onclick="adj(-1)">−</button><div class="f"><small>STAKE</small><input id="st" type="number" value="1" min="0.1" max="100" step="0.1"></div><button onclick="adj(1)">+</button></div>
 <div class="chips" id="chips"></div>
 <div class="trio" id="trio"><div><small style="color:var(--g)">TARGET PROFIT</small><input id="tp" type="number" value="50"></div><div><small style="color:var(--r)">STOP LOSS</small><input id="sl" type="number" value="50"></div><div><small style="color:#f59e0b">MULTIPLIER</small><input id="mu" type="number" value="1" min="1" max="2" step="0.1"></div></div>
 <div class="last"><span>LAST &nbsp;<span id="lastT">0T</span></span><b id="lastP">$0.00</b></div>
@@ -146,7 +171,7 @@ body.light .sw{background:#bbb}body.light .sw:after{right:auto;left:4px}
 <div id="vPos" class="hide"><div class="tabs" style="padding:0;border-bottom:1px solid var(--line)"><div class="tab on" id="p0" onclick="ptab(0)" style="flex:1;text-align:center;border-radius:0">Open (0)</div><div class="tab" id="p1" onclick="ptab(1)" style="flex:1;text-align:center;border-radius:0">Closed (0)</div><div class="tab" id="p2" onclick="ptab(2)" style="flex:1;text-align:center;border-radius:0">Transactions</div></div><div id="hist"></div>
 <div class="sess"><span>Session P/L:</span><b id="sessPL">+0.00 USD</b></div></div>
 
-<div class="nav"><div id="nT" class="on" onclick="view('Trade')"><i>📊</i>Trade</div><div class="ai" onclick="stats()"><i>✦</i>Stats</div><div id="nP" onclick="view('Pos')"><i>🕒</i>Positions</div></div>
+<div class="nav"><div id="nT" class="on" onclick="view('Trade')"><i>📊</i>Trade</div><div class="ai" onclick="scan()"><i>✦</i>Scanner</div><div id="nP" onclick="view('Pos')"><i>🕒</i>Positions</div></div>
 </div>
 <div id="ov"></div>
 
@@ -160,10 +185,10 @@ function session(j){tok=j.token;localStorage.pt=tok;U=j.user;go('app');init()}
 async function register(){$('rerr').textContent='';if($('rp').value!=$('rc').value)return $('rerr').textContent='Passwords do not match';if(!$('ra').checked)return $('rerr').textContent='Please confirm you are 18+ and accept the terms';try{session(await api('register',{name:$('rn').value,email:$('re').value,password:$('rp').value}))}catch(e){$('rerr').textContent=e}}
 async function login(){try{session(await api('login',{email:$('le').value,password:$('lp').value}))}catch(e){$('lerr').textContent=e}}
 function money(){$('bal').textContent='$'+U[acc].toFixed(2);$('accL').textContent=acc=='demo'?'D':'R'}
-function setAcc(a){acc=a;$('aD').className=a=='demo'?'on':'';$('aR').className=a=='real'?'on':'';$('dd').classList.add('hide');money()}
-function ddt(){$('dd').classList.toggle('hide')}
+function setAcc(a){acc=a;$('dd').classList.add('hide');money()}
+function ddt(){$('dd').innerHTML=`<div onclick="setAcc('demo')">Demo account &nbsp;<b>$${U.demo.toFixed(2)}</b></div><div onclick="setAcc('real')">Real account &nbsp;<b>$${U.real.toFixed(2)}</b></div>`;$('dd').classList.toggle('hide')}
 function setMode(m){mode=m;$('mA').className=m=='auto'?'on':'';$('mM').className=m=='manual'?'on':'';$('trio').classList.toggle('hide',m!='auto');stopAuto()}
-function adj(d){$('st').value=Math.min(100,Math.max(1,(+$('st').value||10)+d*5));pay()}
+function adj(d){const v=+$('st').value||1,s=d>0?(v<1?.1:v<10?1:5):(v<=1?.1:v<=10?1:5);$('st').value=Math.min(100,Math.max(.1,Math.round((v+d*s)*100)/100));pay()}
 function pay(){document.querySelectorAll('.po').forEach(e=>e.textContent=($('st').value*1.952).toFixed(2));[...$('chips').children].forEach(c=>c.classList.toggle('on',c.dataset.v==$('st').value))}
 function view(v){$('vTrade').classList.toggle('hide',v!='Trade');$('vPos').classList.toggle('hide',v!='Pos');$('nT').className=v=='Trade'?'on':'';$('nP').className=v=='Pos'?'on':'';if(v=='Pos')ptab(tabP)}
 function ptab(i){tabP=i;[0,1,2].forEach(k=>$('p'+k).className='tab'+(k==i?' on':''));$('p1').textContent='Closed ('+U.history.length+')';
@@ -172,7 +197,7 @@ $('sessPL').textContent=(sess>=0?'+':'')+sess.toFixed(2)+' USD';$('sessPL').styl
 function toast(t,ok){const d=document.createElement('div');d.className='toast';d.style.background=ok?'var(--g)':'var(--r)';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 async function doTrade(pick,stake){const j=await api('trade',{account:acc,stake,pick});U=j.user;money();addTick(j.tick);j.win?W++:L++;if(acc=='real'||true)sess+=j.profit;$('lastT').textContent=`${W+L}T · ${W}W · ${L}L`;$('lastP').textContent=(j.profit>=0?'+':'-')+'$'+Math.abs(j.profit).toFixed(2);$('lastP').style.color=j.profit>=0?'var(--g)':'var(--r)';return j}
 async function press(pick){if(auto){stopAuto();return}
-const base=Math.min(100,Math.max(1,+$('st').value||10));
+const base=Math.min(100,Math.max(.1,Math.round((+$('st').value||1)*100)/100));
 if(mode=='manual'){try{const j=await doTrade(pick,base);toast(j.win?'Won +$'+j.profit.toFixed(2):'Lost $'+Math.abs(j.profit).toFixed(2),j.win)}catch(e){toast(e,0)}return}
 auto={pick,pl:0,stake:base,base};(pick=='even'?$('bE'):$('bO')).querySelector('span').textContent='Stop';runAuto()}
 async function runAuto(){if(!auto)return;const tp=+$('tp').value||0,sl=+$('sl').value||0,m=Math.min(2,Math.max(1,+$('mu').value||1));
@@ -204,14 +229,22 @@ function chPass(){modal(`<div style="display:flex;justify-content:space-between"
 async function savePass(){try{await api('account/password',{oldPassword:$('op').value,newPassword:$('np').value});menu(0);toast('Password updated',1)}catch(e){toast(e,0)}}
 function modal(h,mid){$('ov').innerHTML=`<div class="sheet ${mid?'mid':''}" onclick="menu(0)"><div onclick="event.stopPropagation()">${h}</div></div>`}
 function resp(){modal(`<div style="display:flex;justify-content:space-between"><h2>Responsible Trading</h2><b onclick="menu(0)">✕</b></div><p style="color:var(--mu);margin-top:14px;line-height:1.6">Trading synthetic indices carries a high risk of loss. Each trade has a 50% win chance and pays 1.952×, so over time you are expected to lose money. Only stake what you can afford to lose, set stop losses, take breaks, and never chase losses. This site is for people aged 18+. If trading is causing you stress or financial harm, stop and speak to someone you trust.</p>`,1)}
-function stats(){const c=Array(10).fill(0);digs.forEach(d=>c[d]++);modal(`<div style="display:flex;justify-content:space-between"><h2>Digit Stats</h2><b onclick="menu(0)">✕</b></div><p style="color:var(--mu);margin:12px 0">Last ${digs.length} ticks. Digits are generated randomly, so these counts cannot predict the next result.</p>${c.map((v,i)=>`<div class="pos"><span>Digit ${i}</span><b>${v}</b></div>`).join('')}<div class="pos"><span>Even</span><b>${c.filter((_,i)=>i%2==0).reduce((a,b)=>a+b,0)}</b></div><div class="pos"><span>Odd</span><b>${c.filter((_,i)=>i%2).reduce((a,b)=>a+b,0)}</b></div>`)}
+function scan(){modal(`<div class="sch"><span class="sci">✦</span><b>Entry Scanner</b><span class="scx" onclick="menu(0)">✕</span></div><div class="scb"><div class="scinfo">Pick the market you want to scan. The scanner reads the most recent ticks and shows how often each digit and <b>Even / Odd</b> appeared. It summarises past ticks only: every tick is random, so no entry point has an edge.</div>
+<label>Market</label><select class="scsel"><option>Even / Odd</option></select>
+<div class="scrow"><span id="scl">Ready to scan</span><b id="scn">0/100</b></div><div class="scbar"><i id="scp"></i></div><div id="scr"></div>
+<button class="btn" id="scgo" onclick="runScan()">🔍 &nbsp;Deep Scan Recent Ticks</button><button class="btn ghost" id="scld" disabled onclick="setMode('auto');menu(0);toast('Auto bot loaded',1)">Load Auto Bot</button></div>`,1)}
+async function runScan(){const n=digs.length;if(n<10)return toast('Not enough ticks yet, wait a few seconds',0);$('scgo').disabled=true;$('scgo').textContent='Scanning...';$('scr').innerHTML='';
+for(let i=0;i<=n;i+=Math.max(1,Math.ceil(n/10))){$('scp').style.width=(i/n*100)+'%';$('scn').textContent=Math.min(i,n)+'/'+n;$('scl').textContent='Scanning recent ticks...';await new Promise(z=>setTimeout(z,140))}
+$('scp').style.width='100%';$('scn').textContent=n+'/'+n;const c=Array(10).fill(0);digs.forEach(d=>c[d]++);const ev=c.filter((_,i)=>i%2==0).reduce((a,b)=>a+b,0),od=n-ev,top=c.indexOf(Math.max(...c));
+$('scl').textContent='Scan complete';$('scr').innerHTML=`<div class="scres"><b>Last ${n} ticks:</b> Even ${ev} (${(ev/n*100).toFixed(0)}%) · Odd ${od} (${(od/n*100).toFixed(0)}%)<br>Most frequent digit: ${top} (${c[top]})<br><span style="color:var(--mu)">Win chance on the next tick is still 50% for Even and 50% for Odd, whatever this shows.</span></div>`;
+$('scgo').disabled=false;$('scgo').textContent='🔍  Re-scan';$('scld').disabled=false}
 function sheet(k){const d=k=='dep';modal(`<div style="display:flex;justify-content:space-between"><div><h2>${d?'Deposit Funds':'Withdraw Funds'}</h2><p style="color:var(--mu);margin-top:6px">${d?'Choose your payment method':'Balance: $'+U.real.toFixed(2)}</p></div><b onclick="menu(0)" style="font-size:22px">✕</b></div>
 <div id="pf"><div class="opt" onclick="pm('${k}')"><div class="ic">📱</div><div style="flex:1"><b>M-Pesa</b><br><span style="color:var(--mu)">${d?'Instant mobile money':'Withdraw to mobile money'}</span></div>›</div>${d?'<div class="opt dis"><div class="ic">₮</div><div><b>USDT (TRC20)</b><br><span style="color:var(--mu)">Coming soon</span></div></div><div class="opt dis"><div class="ic">💳</div><div><b>Card</b><br><span style="color:var(--mu)">Coming soon</span></div></div>':''}</div>`)}
 function pm(k){const d=k=='dep';$('pf').innerHTML=`<p style="color:var(--mu);margin:14px 0 0" onclick="sheet('${k}')">← Back</p><div class="opt" style="display:block;cursor:default"><b>M-Pesa</b><br><span style="color:var(--mu)">Min: $1 • Max: $1,900</span><label>Amount (USD)</label><input id="pa" type="number" placeholder="$ 0.00" oninput="$('pb').textContent='${d?'Deposit':'Withdraw'} $'+(+this.value||0)+' via M-Pesa'">${d?`<div class="chips" style="margin-top:12px;flex-wrap:wrap">${[10,25,50,100,250,500].map(v=>`<div class="chip" onclick="$('pa').value=${v};$('pa').oninput()">$${v}</div>`).join('')}</div><label>Phone Number</label><input id="pp" placeholder="e.g., 0712345678 or 254712345678">`:'<p style="margin-top:14px;color:var(--mu)">Withdrawals are sent to your registered number.</p>'}</div><button class="btn" id="pb" onclick="pay2('${k}')">${d?'Deposit':'Withdraw'} $0 via M-Pesa</button>`}
 async function pay2(k){try{if(k!='dep'){await api('withdraw/mpesa',{amount:+$('pa').value});return}
 const r=await api('deposit/mpesa',{amount:+$('pa').value,phone:$('pp').value});modal(`<div style="text-align:center"><div class="spin"></div><h2>Processing Payment</h2><p style="color:var(--mu);margin:12px 0">Please check your phone and enter your M-Pesa PIN to complete the payment.</p><p style="color:var(--mu);font-size:13px">Your balance will be updated automatically once the payment is confirmed.</p><button class="btn" style="background:none;border:1px solid var(--line);color:var(--mu);box-shadow:none" onclick="menu(0)">Close &amp; Check Later</button></div>`,1);
 for(let i=0;i<60;i++){await new Promise(z=>setTimeout(z,3000));const s=await api('deposit/status/'+r.id);if(s.status!='pending'){U=s.user;money();menu(0);return toast(s.status=='paid'?'Deposit received':'Payment failed or cancelled',s.status=='paid')}}}catch(e){toast(e,0)}}
-async function init(){money();$('chips').innerHTML=[1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');pay();$('st').oninput=pay;
+async function init(){money();$('chips').innerHTML=[0.1,1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');pay();$('st').oninput=pay;
 try{(await api('ticks')).forEach(addTick)}catch{}
 setInterval(async()=>{try{addTick(await api('tick'))}catch{}},1000)}
 (async()=>{if(tok){try{U=await api('me');go('app');init();return}catch{}}go(location.hash=='#register'?'register':'login')})();
