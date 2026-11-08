@@ -146,5 +146,10 @@ app.post('/api/tinypesa/callback/:secret', (req, res) => {
 
 app.post('/api/withdraw/mpesa', auth, (req, res) => res.status(501).json({ error: 'Withdrawals not configured yet.' }));
 
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+const INDEX = path.join(__dirname, 'index.html');
+app.get('/', (req, res) => res.json({ ok: true, service: 'paloption.site API' }));
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api/') && require('fs').existsSync(INDEX)) return res.sendFile(INDEX);
+  res.status(404).json({ error: 'Not found' });
+});
 app.listen(process.env.PORT || 3000, () => console.log('paloption.site running'));
