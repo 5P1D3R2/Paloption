@@ -138,6 +138,21 @@ app.post('/api/trade', auth, (req, res) => {
 // Env: TINYPESA_API_KEY, TINYPESA_SLUG (sent as account_no), TINYPESA_TARGET (optional TinyPesa endpoint URL),
 //      WEBHOOK_SECRET, KES_PER_USD (default 129).  TINYPESA_ACCOUNT_NO still works as a fallback for TINYPESA_SLUG.
 // TinyPesa callback URL: https://YOUR-SERVER/api/tinypesa/callback/<WEBHOOK_SECRET>
+const https = require('https');
+// Plain server-to-server POST (no browser-style Origin / Sec-Fetch headers, which TinyPesa rejects as "cross-site").
+function postForm(urlStr, headers, body) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(urlStr);
+    const req = https.request({ method: 'POST', hostname: u.hostname, path: u.pathname + u.search, port: u.port || 443,
+      headers: { ...headers, 'Content-Length': Buffer.byteLength(body), 'User-Agent': 'paloption-server/1.0', Accept: 'application/json' }, timeout: 20000 }, resp => {
+      let data = ''; resp.on('data', c => data += c);
+      resp.on('end', () => resolve({ status: resp.statusCode, ok: resp.statusCode >= 200 && resp.statusCode < 300, text: data }));
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', reject);
+    req.write(body); req.end();
+  });
+}
 const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
 const DEFAULT_TARGET = 'https://tinypesa.com/api/v1/express/initialize';
 const T = (process.env.TINYPESA_TARGET || '').trim();
@@ -157,12 +172,10 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
   const kes = Math.ceil(usd * KES_PER_USD);
   const id = crypto.randomUUID();
   try {
-    const r = await fetch(TINYPESA_URL, {
-      method: 'POST',
-      headers: { Apikey: process.env.TINYPESA_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id }).toString()
-    });
-    const raw = await r.text();
+    const r = await postForm(TINYPESA_URL,
+      { Apikey: process.env.TINYPESA_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+      new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id }).toString());
+    const raw = r.text;
     let j = {}; try { j = JSON.parse(raw); } catch {}
     console.log('TinyPesa initialize ->', r.status, new URL(TINYPESA_URL).pathname, raw.slice(0, 300));
     if (!r.ok || j.success === false || j.success === 'false') {
