@@ -135,101 +135,163 @@ app.post('/api/trade', auth, (req, res) => {
 });
 
 // ---------- TinyPesa deposits (M-Pesa STK push) ----------
-// Env: TINYPESA_API_KEY, TINYPESA_SLUG (sent as account_no), TINYPESA_TARGET (optional TinyPesa endpoint URL),
-//      WEBHOOK_SECRET, KES_PER_USD (default 129).  TINYPESA_ACCOUNT_NO still works as a fallback for TINYPESA_SLUG.
+// Env: TINYPESA_API_KEY, TINYPESA_SLUG (your TinyPesa account USERNAME), WEBHOOK_SECRET, KES_PER_USD (default 129)
+// Optional: TINYPESA_BASE (default https://api.tinypesa.com/api/v1)
 // TinyPesa callback URL: https://YOUR-SERVER/api/tinypesa/callback/<WEBHOOK_SECRET>
+// A payment is credited only after TinyPesa's status API confirms it (the callback just triggers that check).
 const https = require('https');
-// Plain server-to-server POST (no browser-style Origin / Sec-Fetch headers, which TinyPesa rejects as "cross-site").
-function postForm(urlStr, headers, body) {
+const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
+const WEBHOOK_SECRET = String(process.env.WEBHOOK_SECRET || '').trim();
+const cleanEnv = v => String(v || '').trim().replace(/^["']+|["']+$/g, '').trim();
+const TP_KEY = cleanEnv(process.env.TINYPESA_API_KEY);
+const TP_USER = cleanEnv(process.env.TINYPESA_SLUG || process.env.TINYPESA_USERNAME).replace(/^https?:\/\/(www\.)?tinypesa\.com\//i, '').replace(/\/+$/, '');
+const TP_BASE = cleanEnv(process.env.TINYPESA_BASE || 'https://api.tinypesa.com/api/v1').replace(/\/+$/, '');
+
+function httpReq(method, urlStr, headers, body) {
   return new Promise((resolve, reject) => {
     const u = new URL(urlStr);
-    const req = https.request({ method: 'POST', hostname: u.hostname, path: u.pathname + u.search, port: u.port || 443,
-      headers: { ...headers, 'Content-Length': Buffer.byteLength(body), 'User-Agent': 'paloption-server/1.0', Accept: 'application/json' }, timeout: 20000 }, resp => {
+    const hd = { ...headers, 'User-Agent': 'paloption-server/1.0', Accept: 'application/json' };
+    if (body) hd['Content-Length'] = Buffer.byteLength(body);
+    const req = https.request({ method, hostname: u.hostname, path: u.pathname + u.search, port: u.port || 443, headers: hd, timeout: 20000 }, resp => {
       let data = ''; resp.on('data', c => data += c);
-      resp.on('end', () => resolve({ status: resp.statusCode, ok: resp.statusCode >= 200 && resp.statusCode < 300, text: data }));
+      resp.on('end', () => resolve({ status: resp.statusCode, ok: resp.statusCode >= 200 && resp.statusCode < 300, ctype: String(resp.headers['content-type'] || ''), text: data }));
     });
     req.on('timeout', () => req.destroy(new Error('timeout')));
     req.on('error', reject);
-    req.write(body); req.end();
+    if (body) req.write(body);
+    req.end();
   });
 }
-const KES_PER_USD = Number(process.env.KES_PER_USD || 129);
-const DEFAULT_TARGET = 'https://tinypesa.com/api/v1/express/initialize';
-const T = (process.env.TINYPESA_TARGET || '').trim();
-// Accept TINYPESA_TARGET if it is a tinypesa.com URL; a bare host gets the default API path appended.
-let TINYPESA_URL = DEFAULT_TARGET;
-if (/^https:\/\/([a-z0-9-]+\.)*tinypesa\.com(\/|$)/i.test(T)) {
-  const tu = new URL(T);
-  TINYPESA_URL = (tu.pathname === '/' || tu.pathname === '') ? tu.origin + '/api/v1/express/initialize' + tu.search : T;
+
+// Three ways to reach TinyPesa; the first one that is not refused is remembered.
+const TP_VARIANTS = [
+  { label: 'api.tinypesa.com + username (JSON)', base: TP_BASE, init: '/express/initialize/', user: true, form: false },
+  { label: 'api.tinypesa.com key only (JSON)', base: TP_BASE, init: '/express/initialize/', user: false, form: false },
+  { label: 'tinypesa.com public API (form)', base: 'https://tinypesa.com/api/v1', init: '/express/initialize', user: false, form: true }
+];
+let tpPref = 0;
+const tpUrl = (v, kind, arg) => v.base + (kind === 'init' ? v.init : '/express/get_status/' + encodeURIComponent(arg) + '/') + (v.user && TP_USER ? '?username=' + encodeURIComponent(TP_USER) : '');
+const tpRefused = r => r.status === 401 || r.status === 403 || /text\/html/i.test(r.ctype);
+
+async function tpRequest(kind, arg, body) {
+  const order = [tpPref, ...TP_VARIANTS.map((_, i) => i).filter(i => i !== tpPref)];
+  let last = null;
+  for (const i of order) {
+    const v = TP_VARIANTS[i];
+    if (v.user && !TP_USER) continue;
+    const headers = { ApiKey: TP_KEY };
+    let payload;
+    if (body) {
+      headers['Content-Type'] = v.form ? 'application/x-www-form-urlencoded' : 'application/json';
+      payload = v.form ? new URLSearchParams(body).toString() : JSON.stringify(body);
+      if (v.form) { const o = new URL(v.base).origin; headers.Origin = o; headers.Referer = o + '/'; }
+    }
+    const r = await httpReq(body ? 'POST' : 'GET', tpUrl(v, kind, arg), headers, payload);
+    console.log('TinyPesa', kind, '[' + v.label + '] ->', r.status, r.text.replace(/\s+/g, ' ').slice(0, 140));
+    if (tpRefused(r)) { if (!last || !/html/i.test(r.ctype)) last = r; continue; }
+    tpPref = i;
+    return r;
+  }
+  return last;
 }
-if (T && TINYPESA_URL === DEFAULT_TARGET) console.log('TINYPESA_TARGET is not a tinypesa.com URL, using the default endpoint');
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';
-const deposits = new Map();
+
+async function tpStatus(ref) {
+  const r = await tpRequest('status', ref);
+  if (!r || r.status === 400) return null;
+  try { const j = JSON.parse(r.text); return r.ok ? j : null; } catch { return null; }
+}
+
+const deposits = new Map();     // id -> {email, usd, kes, phone, ref, status, requestId, t}
 const seenReceipts = new Set();
 const normPhone = p => { p = String(p || '').replace(/\D/g, ''); if (/^0[17]\d{8}$/.test(p)) p = '254' + p.slice(1); else if (/^[17]\d{8}$/.test(p)) p = '254' + p; return /^254[17]\d{8}$/.test(p) ? p : null; };
 
+async function settle(dep) {
+  if (!dep || dep.status !== 'pending' || dep.settling) return;
+  dep.settling = true;
+  try {
+    let live = await tpStatus(dep.ref);
+    if (!live && dep.requestId) live = await tpStatus(String(dep.requestId));
+    if (!live) return;
+    const done = live.is_complete === true || live.is_complete === 'true' || live.is_complete === 1;
+    if (!done) return;
+    const lref = String(live.external_reference || '');
+    if (lref && lref !== dep.ref) return;
+    if (Number(live.amount) !== dep.kes) { console.log('Deposit amount mismatch, not credited', dep.ref, live.amount, dep.kes); dep.status = 'review'; return; }
+    const receipt = String(live.ref_no || dep.ref);
+    if (seenReceipts.has(receipt)) return;
+    seenReceipts.add(receipt);
+    const u = users.get(dep.email);
+    if (!u) return;
+    u.real = +(u.real + dep.usd).toFixed(4);
+    u.tx.unshift({ type: 'Deposit (M-Pesa)', usd: dep.usd, t: Date.now() });
+    dep.status = 'paid';
+  } catch (e) { console.log('settle error:', e.message); }
+  finally { dep.settling = false; }
+}
+
 app.post('/api/deposit/mpesa', auth, async (req, res) => {
-  if (!process.env.TINYPESA_API_KEY) return res.status(501).json({ error: 'TinyPesa not configured (set TINYPESA_API_KEY)' });
+  if (!TP_KEY) return res.status(501).json({ error: 'TinyPesa not configured (set TINYPESA_API_KEY)' });
   const usd = Number(req.body.amount), phone = normPhone(req.body.phone);
   if (!(usd >= 1 && usd <= 1900)) return res.status(400).json({ error: 'Amount must be $1 - $1,900' });
   if (!phone) return res.status(400).json({ error: 'Enter a valid Safaricom number' });
   const kes = Math.ceil(usd * KES_PER_USD);
   const id = crypto.randomUUID();
+  const ref = 'PAL' + crypto.randomBytes(4).toString('hex').toUpperCase();
   try {
-    const fields = { amount: kes, msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id };
-    const key = { Apikey: process.env.TINYPESA_API_KEY };
-    const sep = TINYPESA_URL.includes('?') ? '&' : '?';
-    // TinyPesa blocks some form-style posts as "cross-site", so try JSON first, then plain query-string parameters.
-    const origin = new URL(TINYPESA_URL).origin;   // TinyPesa rejects POSTs without a same-site Origin ("cross-site" 403)
-    const hdr = { ...key, Origin: origin, Referer: origin + '/' };
-    const asForm = new URLSearchParams(fields).toString();
-    const attempts = [
-      () => postForm(TINYPESA_URL, { ...hdr, 'Content-Type': 'application/x-www-form-urlencoded' }, asForm),
-      () => postForm(TINYPESA_URL, { ...hdr, 'Content-Type': 'application/json' }, JSON.stringify(fields)),
-      () => postForm(TINYPESA_URL + sep + asForm, { ...hdr }, ''),
-      () => postForm(TINYPESA_URL.replace(/\/?$/, '/'), { ...hdr, 'Content-Type': 'application/x-www-form-urlencoded' }, asForm)
-    ];
-    let r;
-    for (const go of attempts) { r = await go(); if (r.ok) break; console.log('TinyPesa attempt failed ->', r.status, r.text.replace(/\s+/g, ' ').slice(0, 120)); }
-    const raw = r.text;
-    let j = {}; try { j = JSON.parse(raw); } catch {}
-    console.log('TinyPesa initialize ->', r.status, new URL(TINYPESA_URL).pathname, raw.slice(0, 300));
-    if (!r.ok || j.success === false || j.success === 'false') {
-      const why = j.message || j.error || (Array.isArray(j.errors) ? j.errors.join(', ') : j.errors) || raw.slice(0, 120).replace(/<[^>]*>/g, '').trim();
+    const r = await tpRequest('init', null, { amount: kes, msisdn: phone, account_no: ref });
+    if (!r) return res.status(502).json({ error: 'TinyPesa unreachable or username missing (set TINYPESA_SLUG)' });
+    let j = {}; try { j = JSON.parse(r.text); } catch {}
+    const rid = j.request_id || j.RequestID || j.bulkID || j.DepositId || j.transaction_id || j.id;
+    if (!r.ok || j.success === false || j.success === 'false' || j.status === false || !rid) {
+      const why = j.message || j.errorMessage || j.error || r.text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
       return res.status(502).json({ error: 'TinyPesa (' + r.status + '): ' + (why || 'no details') });
     }
-    deposits.set(id, { email: req.user.email, usd, kes, phone, status: 'pending', requestId: j.request_id || null, t: Date.now() });
+    deposits.set(id, { email: req.user.email, usd, kes, phone, ref, status: 'pending', requestId: String(rid), t: Date.now() });
     res.json({ id, kes });
   } catch (e) { console.log('TinyPesa request failed:', e.message); res.status(502).json({ error: 'Payment provider unreachable' }); }
 });
-app.get('/api/deposit/status/:id', auth, (req, res) => {
+
+app.get('/api/deposit/status/:id', auth, async (req, res) => {
   const d = deposits.get(req.params.id);
   if (!d || d.email !== req.user.email) return res.status(404).json({ error: 'Not found' });
-  res.json({ status: d.status, user: pub(req.user) });
+  await settle(d);
+  if (d.status === 'pending' && Date.now() - d.t > 10 * 60 * 1000) d.status = 'failed';
+  res.json({ status: d.status === 'review' ? 'failed' : d.status, user: pub(req.user) });
 });
-app.post('/api/tinypesa/callback/:secret', (req, res) => {
-  res.sendStatus(200);
+
+app.post('/api/tinypesa/callback/:secret', async (req, res) => {
+  res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
   if (!WEBHOOK_SECRET || req.params.secret !== WEBHOOK_SECRET) return;
-  const b = req.body || {}, cb = (b.Body && b.Body.stkCallback) || b;
-  const items = Object.fromEntries(((cb.CallbackMetadata || {}).Item || []).map(i => [i.Name, i.Value]));
-  const code = cb.ResultCode ?? cb.result_code ?? (String(b.status || '').toLowerCase() === 'success' ? 0 : 1);
-  const reqId = cb.CheckoutRequestID || cb.request_id || b.request_id || b.TinyPesaID || null;
-  const phone = String(items.PhoneNumber || cb.Msisdn || b.msisdn || '');
-  const amount = Number(items.Amount ?? cb.Amount ?? b.amount);
-  const receipt = items.MpesaReceiptNumber || cb.MpesaReceiptNumber || b.mpesa_receipt || reqId;
-  let hit = null;
-  for (const [, d] of deposits) {
-    if (d.status !== 'pending') continue;
-    if ((reqId && d.requestId === reqId) || (!reqId && d.phone === phone && d.kes === amount)) { hit = d; break; }
-  }
-  if (!hit) return;
-  if (Number(code) !== 0) { hit.status = 'failed'; return; }
-  if (amount && amount < hit.kes) { hit.status = 'failed'; return; }
-  if (receipt && seenReceipts.has(receipt)) return;
-  if (receipt) seenReceipts.add(receipt);
-  const u = users.get(hit.email);
-  if (u) { u.real = +(u.real + hit.usd).toFixed(4); hit.status = 'paid'; u.tx.unshift({ type: 'Deposit (M-Pesa)', usd: hit.usd, t: Date.now() }); }
+  try {
+    const root = req.body || {}, body = root.Body || root, cb = body.stkCallback || root.stkCallback || body;
+    const items = Object.fromEntries((((cb.CallbackMetadata) || {}).Item || []).map(i => [i.Name, i.Value]));
+    const rc = cb.ResultCode ?? body.ResultCode ?? root.Code;
+    const ids = [body.ExternalReference, root.ExternalReference, cb.ExternalReference, cb.CheckoutRequestID, body.CheckoutRequestID, body.TinyPesaID, root.TinyPesaID].filter(Boolean).map(String);
+    const phone = normPhone(items.PhoneNumber ?? body.Msisdn ?? body.PhoneNumber ?? root.Msisdn ?? '');
+    const amount = Number(items.Amount ?? body.Amount ?? root.Amount ?? 0);
+    let dep = null;
+    for (const d of deposits.values()) if (d.status === 'pending' && (ids.includes(d.ref) || ids.includes(d.requestId))) { dep = d; break; }
+    if (!dep && phone && amount) for (const d of deposits.values()) if (d.status === 'pending' && d.phone === phone && d.kes === amount) { dep = d; break; }
+    if (!dep) return;
+    if (rc !== undefined && Number(rc) !== 0) { dep.status = 'failed'; return; }
+    await settle(dep);
+  } catch (e) { console.log('callback error:', e.message); }
 });
+
+// Credentials check that sends no money request: /api/tinypesa-test/<WEBHOOK_SECRET>
+app.get('/api/tinypesa-test/:secret', async (req, res) => {
+  if (!WEBHOOK_SECRET || req.params.secret !== WEBHOOK_SECRET) return res.status(403).end();
+  const out = [];
+  for (const v of TP_VARIANTS) {
+    if (v.user && !TP_USER) { out.push({ method: v.label, skipped: 'TINYPESA_SLUG not set' }); continue; }
+    try {
+      const r = await httpReq('GET', tpUrl(v, 'status', 'PALCHECK'), { ApiKey: TP_KEY });
+      out.push({ method: v.label, http: r.status, webPageInsteadOfApi: /html/i.test(r.ctype), reply: r.text.replace(/\s+/g, ' ').slice(0, 140) });
+    } catch (e) { out.push({ method: v.label, error: e.message }); }
+  }
+  res.json({ keyLength: TP_KEY.length, username: TP_USER, results: out });
+});
+
 app.post('/api/withdraw/mpesa', auth, (req, res) => res.status(501).json({ error: 'Withdrawals not configured yet.' }));
 
 const INDEX = path.join(__dirname, 'index.html');
