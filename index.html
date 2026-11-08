@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PalOption</title>
+<style>
+:root{--bg:#13111f;--card:#1e1a33;--in:#191528;--line:#2c2646;--pu:#7c3aed;--tx:#fff;--mu:#8e89a8;--g:#22c55e;--r:#ff4757}
+*{box-sizing:border-box;margin:0;font-family:Inter,system-ui,sans-serif}
+body{background:var(--bg);color:var(--tx);min-height:100vh}
+.hide{display:none!important}
+.logo{display:flex;align-items:center;gap:14px;font-size:24px;font-weight:700}
+.logo i{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:grid;place-items:center;font-style:normal}
+.auth{max-width:420px;margin:0 auto;padding:60px 22px}
+.auth h1{font-size:34px;margin:40px 0 6px}.auth p{color:var(--mu)}
+label{display:block;margin:20px 0 8px;color:var(--mu);font-weight:600;font-size:14px}
+input{width:100%;padding:16px;background:var(--in);border:1px solid var(--line);border-radius:14px;color:#fff;font-size:16px}
+.btn{width:100%;padding:16px;border:0;border-radius:14px;background:var(--pu);color:#fff;font-weight:700;font-size:17px;margin-top:22px;cursor:pointer}
+a{color:#8b5cf6;font-weight:600;cursor:pointer;text-decoration:none}
+.err{color:var(--r);margin-top:12px;font-size:14px}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#181429;border-bottom:1px solid var(--line)}
+.pill{background:var(--card);border-radius:12px;padding:10px 14px;font-weight:700;color:#a78bfa;cursor:pointer;flex:1}
+.sq{width:42px;height:42px;border-radius:10px;background:var(--pu);display:grid;place-items:center;font-weight:700}
+.dep{background:var(--pu);border:0;color:#fff;font-weight:700;padding:12px 16px;border-radius:12px}
+.tabs{display:flex;gap:10px;padding:12px 16px;overflow:auto}
+.tab{padding:10px 18px;border-radius:24px;color:var(--mu);white-space:nowrap;border:1px solid transparent}
+.tab.on{background:var(--card);color:#fff;border-color:var(--line)}
+.chartbox{position:relative;height:210px;margin:0 0 4px;background:#14112200;border-block:1px solid var(--line)}
+canvas{width:100%;height:100%}
+.sym{position:absolute;left:14px;top:12px;background:#1e1a33dd;border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.sym b{display:block}.sym span{color:var(--g);font-size:14px}
+.digits{display:flex;justify-content:space-between;padding:14px 12px;border-bottom:1px solid var(--line)}
+.d{width:32px;height:32px;border-radius:50%;border:2px solid #34305000;background:var(--card);display:grid;place-items:center;font-weight:700;font-size:14px}
+.d.cur{outline:2px solid #f59e0b}
+.wrap{padding:16px;max-width:560px;margin:0 auto}
+.seg{display:flex;background:var(--in);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg div{flex:1;text-align:center;padding:14px;font-weight:700;color:var(--mu);cursor:pointer}
+.seg .on{background:var(--pu);color:#fff}
+.stake{display:flex;gap:12px;margin:16px 0}
+.stake input{text-align:center;font-size:26px;font-weight:700;border-color:var(--pu)}
+.stake button{width:64px;border:0;border-radius:12px;background:var(--card);color:#fff;font-size:24px}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{flex:1;text-align:center;padding:10px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;font-weight:700;color:var(--mu)}
+.chip.on{border-color:var(--pu);color:#fff}
+.last{display:flex;justify-content:space-between;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--mu);font-weight:600}
+.last b{font-size:22px}
+.go{display:flex;gap:14px;margin-top:16px}
+.go button{flex:1;border:0;border-radius:16px;padding:18px;color:#fff;text-align:left;font-size:24px;font-weight:700;cursor:pointer}
+.go small{display:block;font-size:15px;font-weight:400;opacity:.85}
+.even{background:var(--g)}.odd{background:var(--r)}
+.note{margin-top:14px;color:var(--mu);font-size:13px;line-height:1.5}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#181429;border-top:1px solid var(--line);padding:12px}
+.nav div{color:var(--mu);font-size:14px;text-align:center;cursor:pointer}.nav .on{color:#a78bfa}
+.sheet{position:fixed;inset:0;background:#000a;display:flex;align-items:flex-end;z-index:9}
+.sheet>div{background:var(--card);width:100%;max-height:85vh;overflow:auto;border-radius:26px 26px 0 0;padding:24px}
+.opt{display:flex;gap:16px;align-items:center;padding:18px;border:1px solid var(--line);border-radius:16px;margin-top:14px;cursor:pointer}
+.side{position:fixed;inset:0;background:#000a;z-index:8}
+.side>div{width:82%;max-width:360px;height:100%;background:#181429;padding:20px}
+.side .it{padding:18px 6px;border-bottom:1px solid var(--line);color:#cfcae6;cursor:pointer}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:12px;font-weight:700;z-index:20}
+.pos{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+</style></head><body>
+
+<div id="reg" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
+<h1>Create account</h1><p>Fill in your details to get started</p>
+<label>Full Name</label><input id="rn" placeholder="John Doe">
+<label>Email</label><input id="re" type="email" placeholder="you@example.com">
+<label>Password</label><input id="rp" type="password" placeholder="Min 6 characters">
+<label>Confirm Password</label><input id="rc" type="password" placeholder="Repeat your password">
+<label style="display:flex;gap:10px;align-items:center;color:#fff"><input id="ra" type="checkbox" style="width:22px"> I am 18+ and agree to the Terms and Privacy Policy</label>
+<div class="err" id="rerr"></div><button class="btn" onclick="register()">Create Account →</button>
+<p style="text-align:center;margin-top:28px">Already have an account? <a onclick="go('login')">Sign in</a></p></div>
+
+<div id="login" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
+<h1>Welcome back</h1><p>Sign in to your account to continue</p>
+<label>Email</label><input id="le" type="email" placeholder="you@example.com">
+<label>Password</label><input id="lp" type="password" placeholder="Enter your password">
+<div class="err" id="lerr"></div><button class="btn" onclick="login()">Sign In →</button>
+<p style="text-align:center;margin-top:28px">Don't have an account? <a onclick="go('register')">Create account</a></p></div>
+
+<div id="app" class="hide">
+<div class="top"><div class="sq" onclick="menu(1)">☰</div><div class="sq">P</div>
+<div class="pill" onclick="toggleAcc()"><span id="accL">D</span> &nbsp;<span id="bal">$0.00</span> ⌄</div>
+<button class="dep" onclick="sheet('dep')">Deposit</button></div>
+
+<div id="vTrade">
+<div class="tabs"><div class="tab">Matches/Differs</div><div class="tab on">Even/Odd</div><div class="tab">Over/Under</div></div>
+<div class="chartbox"><canvas id="cv"></canvas><div class="sym"><b>Vol 10 (1s)</b><span id="pr">—</span></div></div>
+<div class="digits" id="dg"></div>
+<div class="wrap">
+<div class="seg"><div id="mD" class="on" onclick="setAcc('demo')">DEMO</div><div id="mR" onclick="setAcc('real')">REAL</div></div>
+<div class="stake"><button onclick="adj(-1)">−</button><input id="st" type="number" value="10" min="1" max="100"><button onclick="adj(1)">+</button></div>
+<div class="chips" id="chips"></div>
+<div class="last"><span>LAST <span id="lastT"></span></span><b id="lastP">$0.00</b></div>
+<div class="go"><button class="even" onclick="trade('even')">Even<small>$<span class="po">19.52</span> Payout · 50% chance</small></button>
+<button class="odd" onclick="trade('odd')">Odd<small>$<span class="po">19.52</span> Payout · 50% chance</small></button></div>
+<p class="note">Odds are identical on demo and real accounts: each tick's last digit is random, so Even/Odd wins 50% of the time and pays 1.952×. Over time most traders lose money. Never stake money you can't afford to lose. 18+ only.</p>
+</div></div>
+
+<div id="vPos" class="hide"><div class="tabs"><div class="tab on">Closed</div></div><div id="hist"></div></div>
+
+<div class="nav"><div id="nT" class="on" onclick="view('Trade')">📊<br>Trade</div><div id="nP" onclick="view('Pos')">🕒<br>Positions</div></div>
+</div>
+<div id="ov"></div>
+
+<script>
+const $=id=>document.getElementById(id);let tok=localStorage.pt||'',U=null,acc='demo',pts=[],lastD=null,W=0,L=0;
+async function api(p,b){const r=await fetch('/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw j.error||'Error';return j}
+function go(v){['reg','login','app'].forEach(x=>$(x).classList.add('hide'));$(v=='register'?'reg':v).classList.remove('hide');history.replaceState(0,0,v=='app'?'/trade':'/'+v)}
+function session(j){tok=j.token;localStorage.pt=tok;U=j.user;go('app');init()}
+async function register(){$('rerr').textContent='';if($('rp').value!=$('rc').value)return $('rerr').textContent='Passwords do not match';if(!$('ra').checked)return $('rerr').textContent='You must confirm 18+ and accept the terms';try{session(await api('register',{name:$('rn').value,email:$('re').value,password:$('rp').value}))}catch(e){$('rerr').textContent=e}}
+async function login(){try{session(await api('login',{email:$('le').value,password:$('lp').value}))}catch(e){$('lerr').textContent=e}}
+function money(){$('bal').textContent='$'+U[acc].toFixed(2);$('accL').textContent=acc=='demo'?'D':'R'}
+function setAcc(a){acc=a;$('mD').className=a=='demo'?'on':'';$('mR').className=a=='real'?'on':'';money()}
+function toggleAcc(){setAcc(acc=='demo'?'real':'demo')}
+function adj(d){$('st').value=Math.min(100,Math.max(1,+$('st').value+d*5||10));pay()}
+function pay(){document.querySelectorAll('.po').forEach(e=>e.textContent=($('st').value*1.952).toFixed(2));[...$('chips').children].forEach(c=>c.classList.toggle('on',c.dataset.v==$('st').value))}
+function view(v){$('vTrade').classList.toggle('hide',v!='Trade');$('vPos').classList.toggle('hide',v!='Pos');$('nT').className=v=='Trade'?'on':'';$('nP').className=v=='Pos'?'on':'';if(v=='Pos')hist()}
+function hist(){$('hist').innerHTML=U.history.map(h=>`<div class="pos"><span>${h.pick.toUpperCase()} · ${h.account} · digit ${h.digit}</span><b style="color:${h.win?'var(--g)':'var(--r)'}">${h.win?'+':''}$${h.profit.toFixed(2)}</b></div>`).join('')||'<p class="note" style="padding:30px;text-align:center">No closed positions yet</p>'}
+function toast(t,ok){const d=document.createElement('div');d.className='toast';d.style.background=ok?'var(--g)':'var(--r)';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
+async function trade(pick){try{const j=await api('trade',{account:acc,stake:+$('st').value,pick});U=j.user;money();draw2(j.tick);j.win?W++:L++;$('lastT').textContent=`${W+L}T · ${W}W · ${L}L`;$('lastP').textContent=(j.profit>=0?'+':'-')+'$'+Math.abs(j.profit).toFixed(2);$('lastP').style.color=j.profit>=0?'var(--g)':'var(--r)';toast(j.win?'Won +$'+j.profit.toFixed(2):'Lost $'+Math.abs(j.profit).toFixed(2),j.win)}catch(e){toast(e,0)}}
+function draw2(t){pts.push(t.price);if(pts.length>60)pts.shift();lastD=t.digit;$('pr').textContent=t.price.toFixed(2);[...$('dg').children].forEach((d,i)=>d.classList.toggle('cur',i==t.digit));plot()}
+function plot(){const c=$('cv'),x=c.getContext('2d');c.width=c.clientWidth*2;c.height=c.clientHeight*2;x.clearRect(0,0,c.width,c.height);if(pts.length<2)return;const mn=Math.min(...pts),mx=Math.max(...pts)||1,r=(mx-mn)||1;x.strokeStyle='#e5e7eb';x.lineWidth=3;x.beginPath();pts.forEach((p,i)=>{const X=i/(pts.length-1)*c.width*.82,Y=c.height*.85-(p-mn)/r*c.height*.6;i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke()}
+function menu(o){$('ov').innerHTML=o?`<div class="side" onclick="menu(0)"><div onclick="event.stopPropagation()"><b style="font-size:20px">✕ Menu</b><div style="margin:22px 0"><b>${U.name}</b><br><span style="color:var(--mu)">${U.email}</span></div><div class="it" onclick="sheet('dep')">Deposit</div><div class="it" onclick="sheet('wd')">Withdraw</div><div class="it" onclick="menu(0);view('Pos')">History</div><div class="it">Help Centre</div><div class="it">Responsible Trading</div><div class="it" onclick="localStorage.clear();location='/login'">Log out</div></div></div>`:''}
+function sheet(k){const m=k=='dep'?'Deposit Funds':'Withdraw Funds';$('ov').innerHTML=`<div class="sheet" onclick="menu(0)"><div onclick="event.stopPropagation()"><div style="display:flex;justify-content:space-between"><h2>${m}</h2><b onclick="menu(0)">✕</b></div><p style="color:var(--mu);margin-top:6px">Choose your payment method · Min $1 · Max $1,900</p><div class="opt" onclick="pm('${k}')">📱<div><b>M-Pesa</b><br><span style="color:var(--mu)">Mobile money</span></div></div><div id="pf"></div></div></div>`}
+function pm(k){$('pf').innerHTML=`<label>Amount (USD)</label><input id="pa" type="number" placeholder="0.00">${k=='dep'?'<label>Phone Number</label><input id="pp" placeholder="07XXXXXXXX or 2547XXXXXXXX">':''}<button class="btn" onclick="pay2('${k}')">${k=='dep'?'Deposit':'Withdraw'} via M-Pesa</button>`}
+async function pay2(k){try{if(k!='dep')return await api('withdraw/mpesa',{amount:+$('pa').value});const r=await api('deposit/mpesa',{amount:+$('pa').value,phone:$('pp').value});$('pf').innerHTML='<p style="text-align:center;margin:24px 0">Check your phone and enter your M-Pesa PIN.<br><span style="color:var(--mu)">Your real balance updates automatically once payment is confirmed.</span></p>';for(let i=0;i<40;i++){await new Promise(z=>setTimeout(z,3000));const s=await api('deposit/status/'+r.id);if(s.status!='pending'){U=s.user;money();menu(0);return toast(s.status=='paid'?'Deposit received':'Payment failed or cancelled',s.status=='paid')}}toast('Still pending - check history later',0);menu(0)}catch(e){toast(e,0)}}
+function init(){money();$('dg').innerHTML=[...Array(10).keys()].map(i=>`<div class="d">${i}</div>`).join('');$('chips').innerHTML=[1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');pay();$('st').oninput=pay;setInterval(async()=>{try{draw2(await api('tick'))}catch{}},1000)}
+(async()=>{if(tok){try{U=await api('me');go('app');init();return}catch{}}go(location.pathname=='/register'?'register':'login')})();
+</script></body></html>
