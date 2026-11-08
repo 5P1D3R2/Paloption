@@ -33,7 +33,9 @@ function nextTick() {
   return { price: +p.toFixed(2), digit, t: Date.now() };
 }
 let lastTick = nextTick();
-setInterval(() => { lastTick = nextTick(); }, 1000);
+const ticks = [lastTick];
+const pushTick = t => { ticks.push(t); if (ticks.length > 100) ticks.shift(); };
+setInterval(() => { lastTick = nextTick(); pushTick(lastTick); }, 1000);
 
 function auth(req, res, next) {
   try {
@@ -43,7 +45,7 @@ function auth(req, res, next) {
     next();
   } catch { res.status(401).json({ error: 'Unauthorized' }); }
 }
-const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 50) });
+const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 50), tx: (u.tx || []).slice(0, 50) });
 
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body || {};
@@ -61,8 +63,20 @@ app.post('/api/login', async (req, res) => {
   res.json({ token: jwt.sign({ email: u.email }, SECRET, { expiresIn: '7d' }), user: pub(u) });
 });
 
+app.post('/api/account/name', auth, (req, res) => {
+  const n = String((req.body || {}).name || '').trim().slice(0, 60);
+  if (n.length < 2) return res.status(400).json({ error: 'Name too short' });
+  req.user.name = n; res.json({ user: pub(req.user) });
+});
+app.post('/api/account/password', auth, async (req, res) => {
+  const { oldPassword, newPassword } = req.body || {};
+  if (!(await bcrypt.compare(oldPassword || '', req.user.hash))) return res.status(401).json({ error: 'Current password is wrong' });
+  if ((newPassword || '').length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  req.user.hash = await bcrypt.hash(newPassword, 10); res.json({ ok: true });
+});
 app.get('/api/me', auth, (req, res) => res.json(pub(req.user)));
 app.get('/api/tick', (req, res) => res.json(lastTick));
+app.get('/api/ticks', (req, res) => res.json(ticks));
 app.get('/api/odds', (req, res) => res.json({ winChance: WIN_CHANCE, payout: PAYOUT, note: 'Same odds for demo and real accounts.' }));
 
 app.post('/api/trade', auth, (req, res) => {
@@ -72,7 +86,7 @@ app.post('/api/trade', auth, (req, res) => {
     return res.status(400).json({ error: 'Invalid trade (stake $1-$100)' });
   const u = req.user;
   if (u[account] < s) return res.status(400).json({ error: 'Insufficient balance' });
-  const tick = nextTick(); lastTick = tick;
+  const tick = nextTick(); lastTick = tick; pushTick(tick);
   const win = (tick.digit % 2 === 0) === (pick === 'even');
   const profit = win ? +(s * PAYOUT - s).toFixed(2) : -s;
   u[account] = +(u[account] + profit).toFixed(2);
@@ -141,7 +155,7 @@ app.post('/api/tinypesa/callback/:secret', (req, res) => {
   if (receipt && seenReceipts.has(receipt)) return;
   if (receipt) seenReceipts.add(receipt);
   const u = users.get(hit.email);
-  if (u) { u.real = +(u.real + hit.usd).toFixed(2); hit.status = 'paid'; }
+  if (u) { u.real = +(u.real + hit.usd).toFixed(2); hit.status = 'paid'; (u.tx = u.tx || []).unshift({ type: 'Deposit (M-Pesa)', usd: hit.usd, t: Date.now() }); }
 });
 
 app.post('/api/withdraw/mpesa', auth, (req, res) => res.status(501).json({ error: 'Withdrawals not configured yet.' }));
