@@ -24,6 +24,9 @@ app.use(express.static(__dirname));
 const SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 const RTP = 0.976;              // payout multiplier = RTP / win probability (same for every contract)
 const users = new Map();        // in-memory; swap for MongoDB in production
+const deposits = new Map();     // id -> {email, usd, method:'mpesa'|'usdt', status, t, ...}
+const withdrawals = new Map();  // id -> {email, usd, method, phone|address, status, t}
+const support = new Map();      // email -> [{from:'user'|'support', text, t}]
 
 // ---------- markets ----------
 const DEFS = [
@@ -63,14 +66,16 @@ function auth(req, res, next) {
     next();
   } catch { res.status(401).json({ error: 'Unauthorized' }); }
 }
-const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 100), tx: (u.tx || []).slice(0, 50) });
+const shown = d => { let st = d.status; if (st === 'pending' && d.method !== 'usdt' && d.t && Date.now() - d.t > 10 * 60 * 1000 && d.usd !== undefined && d.requestId !== undefined) st = 'failed'; if (st === 'review') st = 'pending'; return st; };
+const mine = (map, u) => [...map.values()].filter(x => x.email === u.email).sort((a, b) => b.t - a.t).slice(0, 50).map(x => ({ usd: x.usd, method: x.method || 'mpesa', status: shown(x), t: x.t }));
+const pub = u => ({ name: u.name, email: u.email, demo: +u.demo.toFixed(2), real: +u.real.toFixed(2), history: u.history.slice(0, 100), deposits: mine(deposits, u), withdrawals: mine(withdrawals, u) });
 
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || !/^\S+@\S+\.\S+$/.test(email || '') || (password || '').length < 6)
     return res.status(400).json({ error: 'Check your details (password min 6 chars)' });
   if (users.has(email.toLowerCase())) return res.status(409).json({ error: 'Email already registered' });
-  const u = { name, email: email.toLowerCase(), hash: await bcrypt.hash(password, 10), demo: 10000, real: 0, history: [], tx: [] };
+  const u = { name, email: email.toLowerCase(), hash: await bcrypt.hash(password, 10), demo: 10000, real: 0, history: [] };
   users.set(u.email, u);
   res.json({ token: jwt.sign({ email: u.email }, SECRET, { expiresIn: '7d' }), user: pub(u) });
 });
@@ -201,7 +206,6 @@ async function tpStatus(ref) {
   try { const j = JSON.parse(r.text); return r.ok ? j : null; } catch { return null; }
 }
 
-const deposits = new Map();     // id -> {email, usd, kes, phone, ref, status, requestId, t}
 const seenReceipts = new Set();
 const normPhone = p => { p = String(p || '').replace(/\D/g, ''); if (/^0[17]\d{8}$/.test(p)) p = '254' + p.slice(1); else if (/^[17]\d{8}$/.test(p)) p = '254' + p; return /^254[17]\d{8}$/.test(p) ? p : null; };
 
@@ -223,7 +227,6 @@ async function settle(dep) {
     const u = users.get(dep.email);
     if (!u) return;
     u.real = +(u.real + dep.usd).toFixed(4);
-    u.tx.unshift({ type: 'Deposit (M-Pesa)', usd: dep.usd, t: Date.now() });
     dep.status = 'paid';
   } catch (e) { console.log('settle error:', e.message); }
   finally { dep.settling = false; }
@@ -246,7 +249,7 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
       const why = j.message || j.errorMessage || j.error || r.text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
       return res.status(502).json({ error: 'TinyPesa (' + r.status + '): ' + (why || 'no details') });
     }
-    deposits.set(id, { email: req.user.email, usd, kes, phone, ref, status: 'pending', requestId: String(rid), t: Date.now() });
+    deposits.set(id, { email: req.user.email, usd, kes, phone, ref, method: 'mpesa', status: 'pending', requestId: String(rid), t: Date.now() });
     res.json({ id, kes });
   } catch (e) { console.log('TinyPesa request failed:', e.message); res.status(502).json({ error: 'Payment provider unreachable' }); }
 });
@@ -292,7 +295,103 @@ app.get('/api/tinypesa-test/:secret', async (req, res) => {
   res.json({ keyLength: TP_KEY.length, username: TP_USER, results: out });
 });
 
-app.post('/api/withdraw/mpesa', auth, (req, res) => res.status(501).json({ error: 'Withdrawals not configured yet.' }));
+
+// ---------- config, USDT deposits, withdrawals, support chat, admin ----------
+const USDT_ADDRESS = String(process.env.USDT_ADDRESS || 'TVQ2apPfjAL1BUFkvg2Ep8vEzs5KgtyGSP').trim();
+const MIN_USDT = 4;
+const round2 = n => Math.round(Number(n) * 100) / 100;
+app.get('/api/config', (req, res) => res.json({ usdtAddress: USDT_ADDRESS, minUsdt: MIN_USDT }));
+
+// USDT (TRC20): the user sends to our address, then submits the TXID. It is credited after we verify it (admin approve).
+app.post('/api/deposit/usdt', auth, (req, res) => {
+  const usd = round2(req.body.amount), txid = String(req.body.txid || '').trim().toLowerCase();
+  if (!(usd >= MIN_USDT && usd <= 100000)) return res.status(400).json({ error: 'Minimum deposit is $' + MIN_USDT.toFixed(2) + ' USDT' });
+  if (!/^[a-f0-9]{64}$/.test(txid)) return res.status(400).json({ error: 'Enter the 64-character transaction ID (TXID)' });
+  for (const d of deposits.values()) if (d.txid === txid) return res.status(400).json({ error: 'This transaction ID was already submitted' });
+  const id = crypto.randomUUID();
+  deposits.set(id, { email: req.user.email, usd, method: 'usdt', status: 'review', txid, t: Date.now() });
+  res.json({ ok: true, id });
+});
+
+// Withdrawals are requests: balance is held right away and the request waits for manual approval (no fake instant payouts).
+app.post('/api/withdraw', auth, (req, res) => {
+  const method = req.body.method, usd = round2(req.body.amount), u = req.user;
+  let dest = {};
+  if (method === 'mpesa') {
+    const phone = normPhone(req.body.phone);
+    if (!phone) return res.status(400).json({ error: 'Enter a valid Safaricom number' });
+    if (!(usd >= 1)) return res.status(400).json({ error: 'Minimum withdrawal is $1' });
+    dest = { phone, kes: Math.floor(usd * KES_PER_USD) };
+  } else if (method === 'usdt') {
+    const address = String(req.body.address || '').trim();
+    if (!/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(address)) return res.status(400).json({ error: 'Enter a valid TRC20 (Tron) address starting with T' });
+    if (!(usd >= 10)) return res.status(400).json({ error: 'Minimum USDT withdrawal is $10' });
+    dest = { address };
+  } else return res.status(400).json({ error: 'Pick a withdrawal method' });
+  if (usd > 1900) return res.status(400).json({ error: 'Maximum withdrawal is $1,900' });
+  if (u.real < usd) return res.status(400).json({ error: 'Insufficient real balance' });
+  u.real = +(u.real - usd).toFixed(4);
+  withdrawals.set(crypto.randomUUID(), { email: u.email, usd, method, ...dest, status: 'pending', t: Date.now() });
+  res.json({ ok: true, user: pub(u) });
+});
+
+// Support chat
+app.get('/api/support', auth, (req, res) => res.json((support.get(req.user.email) || []).slice(-100)));
+app.post('/api/support', auth, (req, res) => {
+  const text = String(req.body.text || '').trim().slice(0, 500);
+  if (!text) return res.status(400).json({ error: 'Type a message first' });
+  const arr = support.get(req.user.email) || [];
+  const last = arr[arr.length - 1];
+  if (last && last.from === 'user' && Date.now() - last.t < 700) return res.status(429).json({ error: 'Slow down a little' });
+  arr.push({ from: 'user', text, t: Date.now() });
+  if (arr.length > 200) arr.shift();
+  support.set(req.user.email, arr);
+  res.json({ ok: true });
+});
+
+// Admin (set ADMIN_SECRET on Render). Open these links in your browser.
+const ADMIN_SECRET = String(process.env.ADMIN_SECRET || '').trim();
+const adminOk = (req, res) => { if (!ADMIN_SECRET || req.params.secret !== ADMIN_SECRET) { res.status(403).json({ error: 'Forbidden' }); return false; } return true; };
+const base = req => 'https://' + req.get('host') + '/api/admin/' + ADMIN_SECRET;
+app.get('/api/admin/:secret/pending', (req, res) => {
+  if (!adminOk(req, res)) return;
+  const b = base(req);
+  res.json({
+    usdtDeposits: [...deposits.entries()].filter(([, d]) => d.method === 'usdt' && d.status === 'review').map(([id, d]) => ({ email: d.email, claimedUsd: d.usd, txid: d.txid, check: 'https://tronscan.org/#/transaction/' + d.txid, approve: b + '/deposit/' + id + '/approve', approveOtherAmount: b + '/deposit/' + id + '/approve?amount=AMOUNT', reject: b + '/deposit/' + id + '/reject' })),
+    withdrawals: [...withdrawals.entries()].filter(([, w]) => w.status === 'pending').map(([id, w]) => ({ email: w.email, usd: w.usd, method: w.method, phone: w.phone, kes: w.kes, address: w.address, markPaid: b + '/withdrawal/' + id + '/approve', rejectAndRefund: b + '/withdrawal/' + id + '/reject' })),
+    support: [...support.entries()].filter(([, m]) => m.length && m[m.length - 1].from === 'user').map(([email, m]) => ({ email, lastMessage: m[m.length - 1].text, reply: b + '/reply?email=' + encodeURIComponent(email) + '&text=YOUR+MESSAGE' }))
+  });
+});
+app.get('/api/admin/:secret/deposit/:id/:action', (req, res) => {
+  if (!adminOk(req, res)) return;
+  const d = deposits.get(req.params.id);
+  if (!d || d.method !== 'usdt' || d.status !== 'review') return res.status(404).json({ error: 'No such pending USDT deposit' });
+  if (req.params.action === 'reject') { d.status = 'rejected'; return res.json({ ok: true, status: d.status }); }
+  if (req.params.action !== 'approve') return res.status(400).json({ error: 'Use approve or reject' });
+  const amount = req.query.amount !== undefined ? round2(req.query.amount) : d.usd;
+  const u = users.get(d.email);
+  if (!u || !(amount > 0)) return res.status(400).json({ error: 'Bad amount or user' });
+  u.real = +(u.real + amount).toFixed(4); d.usd = amount; d.status = 'paid';
+  res.json({ ok: true, credited: amount, email: d.email });
+});
+app.get('/api/admin/:secret/withdrawal/:id/:action', (req, res) => {
+  if (!adminOk(req, res)) return;
+  const w = withdrawals.get(req.params.id);
+  if (!w || w.status !== 'pending') return res.status(404).json({ error: 'No such pending withdrawal' });
+  if (req.params.action === 'approve') { w.status = 'approved'; return res.json({ ok: true, status: w.status }); }
+  if (req.params.action === 'reject') {
+    const u = users.get(w.email); if (u) u.real = +(u.real + w.usd).toFixed(4);
+    w.status = 'rejected'; return res.json({ ok: true, refunded: w.usd });
+  }
+  res.status(400).json({ error: 'Use approve or reject' });
+});
+app.get('/api/admin/:secret/reply', (req, res) => {
+  if (!adminOk(req, res)) return;
+  const email = String(req.query.email || '').toLowerCase(), text = String(req.query.text || '').trim().slice(0, 500);
+  if (!users.has(email) || !text) return res.status(400).json({ error: 'Need a valid email and text' });
+  const arr = support.get(email) || []; arr.push({ from: 'support', text, t: Date.now() }); support.set(email, arr);
+  res.json({ ok: true });
+});
 
 const INDEX = path.join(__dirname, 'index.html');
 app.get('/', (req, res) => fs.existsSync(INDEX) ? res.sendFile(INDEX) : res.json({ ok: true, service: 'paloption.site API' }));
