@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PalOption</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#13111f;--bar:#1b1730;--card:#221d3b;--in:#181429;--line:#2e2750;--pu:#7c3aed;--tx:#fff;--mu:#8e89a8;--g:#22c55e;--r:#ff4757}
+body.light{--bg:#f4f3fa;--bar:#fff;--card:#fff;--in:#f0eef8;--line:#ddd8ee;--tx:#1a1530;--mu:#6b6785}
+*{box-sizing:border-box;margin:0;font-family:Inter,system-ui,sans-serif}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:80px}
+.hide{display:none!important}
+.logo{display:flex;align-items:center;gap:14px;font-size:24px;font-weight:700}
+.logo i{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:grid;place-items:center;font-style:normal}
+.auth{max-width:420px;margin:0 auto;padding:60px 22px}
+.auth h1{font-size:34px;margin:40px 0 6px}.auth p{color:var(--mu)}
+label{display:block;margin:20px 0 8px;color:var(--mu);font-weight:600;font-size:14px}
+input{width:100%;padding:16px;background:var(--in);border:1px solid var(--line);border-radius:14px;color:var(--tx);font-size:16px}
+.btn{width:100%;padding:16px;border:0;border-radius:14px;background:var(--pu);color:#fff;font-weight:700;font-size:17px;margin-top:22px;cursor:pointer;box-shadow:0 8px 24px #7c3aed44}
+a{color:#8b5cf6;font-weight:600;cursor:pointer}
+.err{color:var(--r);margin-top:12px;font-size:14px}
+.banner{display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(90deg,#7c3aed,#db2777)}
+.banner .ic{width:48px;height:48px;border-radius:12px;background:#ffffff33;display:grid;place-items:center;font-size:22px}
+.banner b{display:block}.banner small{opacity:.85}.banner div.t{flex:1}
+.banner button{background:#fff;color:var(--pu);border:0;border-radius:10px;padding:11px 16px;font-weight:700}
+.top{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bar);border-bottom:1px solid var(--line);position:relative}
+.ib{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;background:var(--pu);font-size:18px;flex:none}
+.ib.g{background:var(--card);color:var(--mu)}
+.pill{background:var(--card);border-radius:14px;padding:8px 12px;font-weight:700;color:#a78bfa;cursor:pointer;display:flex;align-items:center;gap:10px;flex:1;max-width:210px}
+.pill .c{width:32px;height:32px;border-radius:9px;background:var(--pu);color:#fff;display:grid;place-items:center;font-size:14px}
+.dep{background:var(--pu);border:0;color:#fff;font-weight:700;padding:12px 16px;border-radius:12px;font-size:16px}
+.dd{position:absolute;top:70px;left:70px;background:var(--card);border:1px solid var(--line);border-radius:12px;z-index:5;min-width:210px}
+.dd div{padding:14px 18px;cursor:pointer}
+.tabs{display:flex;gap:10px;padding:14px 16px 10px;overflow:auto}
+.tab{padding:11px 18px;border-radius:26px;color:var(--mu);white-space:nowrap;font-weight:600;border:1px solid transparent}
+.tab.on{background:var(--card);color:var(--tx);border-color:var(--line)}
+.chartbox{position:relative;height:215px;border-block:1px solid var(--line);background:linear-gradient(#0000,#0000),repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 36px),repeating-linear-gradient(90deg,#ffffff08 0 1px,transparent 1px 74px)}
+canvas{width:100%;height:100%;display:block}
+.sym{position:absolute;left:16px;top:16px;background:#221d3bf0;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:center;color:#fff;cursor:pointer}
+.sym b{display:block}.sym small{color:var(--g);font-weight:600}
+.zm{position:absolute;left:16px;bottom:20px;display:flex;flex-direction:column;gap:8px}
+.zm div{width:40px;height:40px;border-radius:10px;background:#221d3bf0;border:1px solid var(--line);display:grid;place-items:center;color:#fff;font-size:22px}
+.pct{position:absolute;right:92px;top:16px;background:#221d3bf0;border:1px solid var(--line);border-radius:10px;padding:14px 18px;color:#aaa}
+.ptag{position:absolute;right:6px;background:#0f2a2f;border:1px solid #2dd4bf;border-radius:6px;padding:6px 8px;font-size:15px;color:#fff;transform:translateY(-50%)}
+.digits{display:flex;justify-content:space-between;padding:12px 8px 16px;border-bottom:1px solid var(--line)}
+.dg{position:relative;width:34px;text-align:center;flex:none}
+.dg svg{width:34px;height:34px}.dg .n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.dg .n b{font-size:13px}.dg .n small{font-size:7px;color:var(--mu)}
+.dg .mk{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);border:5px solid transparent;border-top:7px solid #f59e0b;border-bottom:0}
+.wrap{padding:16px;max-width:560px;margin:0 auto}
+.seg{display:flex;background:var(--in);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg div{flex:1;text-align:center;padding:14px;font-weight:700;color:var(--mu);cursor:pointer;letter-spacing:.5px}
+.seg .on{background:var(--pu);color:#fff}
+.stake{display:flex;gap:12px;margin:16px 0 12px}
+.stake>div.f{flex:1;border:2px solid #4c2fa6;border-radius:16px;background:#1c1533;text-align:center;padding:8px}
+.stake small{color:#8b5cf6;font-weight:700;letter-spacing:1px;font-size:12px}
+.stake input{background:none;border:0;text-align:center;font-size:30px;font-weight:700;padding:2px;color:#fff}
+.stake button{width:64px;border:0;border-radius:14px;background:var(--card);color:var(--tx);font-size:26px}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{flex:1;text-align:center;padding:11px 0;background:var(--card);border:1px solid var(--line);border-radius:8px;font-weight:700;color:var(--mu);font-size:14px}
+.chip.on{border-color:var(--pu);color:var(--tx);background:#2a2150}
+.trio{display:flex;gap:10px;margin-bottom:12px}
+.trio div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.trio small{display:block;font-size:11px;font-weight:700;letter-spacing:1px}
+.trio input{background:none;border:0;padding:4px 0 0;font-size:20px;font-weight:600}
+.last{display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--mu);font-weight:600}
+.last b{font-size:22px}
+.go{display:flex;gap:14px;margin-top:14px}
+.go button{flex:1;border:0;border-radius:18px;padding:16px;color:#fff;text-align:left;font-size:26px;font-weight:700;cursor:pointer}
+.go .row{display:flex;justify-content:space-between;align-items:flex-start}
+.go small{display:block;font-size:15px;font-weight:600;opacity:.9}.go .pt{font-size:12px;font-weight:400;opacity:.85;text-align:right}
+.even{background:var(--g)}.odd{background:var(--r)}
+.note{margin-top:14px;color:var(--mu);font-size:12.5px;line-height:1.5}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:flex-end;background:var(--bar);border-top:1px solid var(--line);padding:10px 0 8px}
+.nav>div{color:var(--mu);font-size:15px;text-align:center;cursor:pointer;flex:1}.nav .on{color:#a78bfa}.nav i{display:block;font-style:normal;font-size:24px}
+.nav .ai i{width:72px;height:72px;margin:-30px auto 2px;border-radius:20px;background:linear-gradient(135deg,#f97316,#ec4899,#8b5cf6);display:grid;place-items:center;color:#fff;font-size:30px;box-shadow:0 6px 20px #ec489966}
+.nav .ai{color:#ec4899;font-weight:700}
+.sheet{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-end;z-index:30}
+.sheet.mid{align-items:center;padding:20px}
+.sheet>div{background:var(--card);width:100%;max-height:90vh;overflow:auto;border-radius:26px 26px 0 0;padding:24px}
+.sheet.mid>div{border-radius:22px;max-width:480px;margin:auto}
+.opt{display:flex;gap:16px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:16px;margin-top:14px;cursor:pointer}
+.opt .ic{width:56px;height:56px;border-radius:14px;background:#33265f;display:grid;place-items:center;font-size:24px}
+.opt.dis{opacity:.5}
+.side{position:fixed;inset:0;background:#000b;z-index:30}
+.side>div{width:84%;max-width:380px;height:100%;background:var(--bar);overflow:auto}
+.side .hd{display:flex;justify-content:space-between;padding:22px;font-size:20px;font-weight:700;border-bottom:1px solid var(--line)}
+.side .me{display:flex;gap:16px;align-items:center;padding:20px;border-bottom:1px solid var(--line)}
+.av{width:64px;height:64px;border-radius:50%;background:var(--pu);display:grid;place-items:center;font-size:26px;font-weight:700;color:#fff}
+.side .it{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;color:var(--mu);font-size:18px;cursor:pointer}
+.side .it.hl2{background:#241d44}.ml{display:flex;align-items:center;gap:16px}.mg{width:30px;text-align:center;font-size:20px}.mi{width:34px;height:34px;border-radius:10px;background:var(--pu);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px}
+.sub{display:flex;align-items:center;gap:16px;padding:18px 22px 18px 36px;color:var(--mu);font-size:17px;cursor:pointer;background:#16122a}.sub em{margin-left:auto;font-style:normal}.sub span{width:30px;text-align:center}
+.side .it.hl{background:#2a2150;color:#c4b5fd}
+.sw{width:56px;height:30px;border-radius:15px;background:var(--pu);position:relative}.sw:after{content:'';position:absolute;right:4px;top:4px;width:22px;height:22px;border-radius:50%;background:#fff}
+body.light .sw{background:#bbb}body.light .sw:after{right:auto;left:4px}
+.toast{position:fixed;top:90px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:12px;font-weight:700;z-index:50;color:#fff}
+.pos{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.empty{text-align:center;padding:90px 20px;color:var(--mu)}.empty .c{width:128px;height:128px;border-radius:50%;background:var(--card);margin:0 auto 24px;display:grid;place-items:center;font-size:44px}
+.sess{position:fixed;bottom:84px;left:0;right:0;background:var(--card);padding:16px 22px;color:var(--mu);border-top:1px solid var(--line)}
+.sess b{float:right;color:var(--g);font-size:20px}
+.spin{width:80px;height:80px;border-radius:50%;border:8px solid #33265f;border-top-color:#8b5cf6;margin:10px auto 20px;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+
+html,body{overflow-x:hidden;max-width:100%}
+.top{gap:8px;padding:12px 10px}
+.top .ib{width:38px;height:38px;font-size:16px}
+.top .ib.plain{background:none;color:var(--mu);width:28px;font-size:22px}
+.pill{max-width:none;min-width:0;padding:5px 8px;gap:8px}
+.pill .c{width:28px;height:28px;font-size:13px}
+#bal{font-size:15px;white-space:nowrap}
+.dep{padding:11px 13px;font-size:15px;flex:none}
+.dd{left:60px;top:64px;min-width:230px}
+.tab{padding:9px 15px;font-size:15px}
+.stake input{font-size:26px}.stake button{width:56px}
+.chip{font-size:13px;padding:10px 0}
+.go button{font-size:24px;padding:14px}
+.nav .ai i{width:64px;height:64px;margin-top:-26px;font-size:26px}
+.sch{display:flex;align-items:center;gap:14px;font-size:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.sch b{flex:1}.sci{width:44px;height:44px;border-radius:12px;background:#33265f;border:1px solid #5b3fc4;display:grid;place-items:center;color:#a78bfa}.scx{color:var(--mu);font-size:22px}
+.scb{padding-top:18px}
+.scinfo{background:var(--in);border-radius:14px;padding:16px;color:var(--mu);line-height:1.55;font-size:15px}.scinfo b{color:var(--tx)}
+.scsel{width:100%;padding:16px;background:var(--in);border:1px solid var(--line);border-radius:14px;color:var(--tx);font-size:17px}
+.scrow{display:flex;justify-content:space-between;margin:20px 0 10px;color:var(--mu);font-weight:600}.scrow b{color:var(--tx)}
+.scbar{height:12px;border-radius:6px;background:#2a2548;overflow:hidden}.scbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#8b5cf6);transition:width .15s}
+.scres{margin-top:16px;border:1px solid #1f6f4a;background:#12281f;border-radius:14px;padding:14px;line-height:1.6;font-size:15px}
+.btn.ghost{background:none;border:1px solid var(--line);color:#6d4cc4;box-shadow:none;margin-top:12px}.btn.ghost:disabled{opacity:.6}
+.btn:disabled{opacity:.75}
+
+.dg{width:34px}.dg svg{width:34px;height:34px;border-radius:50%;background:#1d1838;transition:transform .3s,background .3s;overflow:visible}
+.dg .tk{fill:none;stroke:#2f2a52;stroke-width:2}
+.dg .ar{fill:none;stroke:transparent;stroke-width:2.6;stroke-linecap:round;stroke-dasharray:0 94.2;transition:stroke-dasharray .6s ease,stroke .4s}
+.dg.cur svg{transform:scale(1.22);background:color-mix(in srgb,var(--gl,#7c3aed) 28%,#1d1838);box-shadow:0 0 12px var(--gl,#7c3aed)}
+.dg .n{transition:transform .3s}.dg.cur .n{transform:scale(1.15)}
+.dg .mk{display:none;border-top-color:var(--gl,#f59e0b);bottom:-14px}
+.brow{display:flex;gap:6px;margin:12px 0 0}.bd{flex:1;text-align:center;padding:13px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:16px;color:var(--mu)}.bd.on{background:var(--pu);color:#fff;border-color:var(--pu)}
+.go .row{display:flex;justify-content:space-between;align-items:flex-start;width:100%}.go .r2{font-size:14px;font-weight:500;opacity:.9;margin-top:6px}
+.go .pt{font-size:16px;font-weight:600;text-align:right}
+.go button.stop{background:#f59e0b;display:flex;align-items:center;justify-content:center}.stp{font-size:22px;font-weight:700}
+.go button.dim{opacity:.35;pointer-events:none}
+.last.live{border-color:#f59e0b66;background:#2a2118}.ld{display:inline-block;width:11px;height:11px;border-radius:50%;background:#f59e0b;margin-right:8px}.lv{color:#f59e0b;font-weight:700}
+.load{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--mu);font-size:20px;background:#13111fcc;z-index:2}
+.spin.sm{width:56px;height:56px;border-width:5px;margin:0}
+.syml{position:absolute;left:16px;top:72px;width:78%;max-height:300px;overflow:auto;background:#1c1833;border:1px solid var(--line);border-radius:12px;z-index:6}
+.syml div{display:flex;align-items:center;gap:12px;padding:14px;color:#cfcae6;font-size:15px}.syml i{width:26px;height:26px;border-radius:7px;background:#2a2548;display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--mu)}
+.syml .on{background:#16343a;color:#2dd4bf}.syml em{margin-left:auto;width:9px;height:9px;border-radius:50%;background:#2dd4bf}
+.ptabs{display:flex;border-bottom:1px solid var(--line);background:var(--bar)}.ptab{flex:1;text-align:center;padding:16px 4px;color:var(--mu);font-weight:600;border-bottom:3px solid transparent}.ptab.on{color:#8b5cf6;border-color:#8b5cf6}
+#hist{padding:16px 16px 200px}
+.pc{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}
+.pc .ph{display:flex;align-items:center;gap:14px}.pc .pi{width:48px;height:48px;border-radius:12px;background:#1e2a36;color:var(--g);display:grid;place-items:center;font-size:22px}
+.pc .pk{margin-left:auto;font-weight:600}.pk i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
+.pc .stt{margin:12px 0}.pc .usd{display:inline-block;background:#2a2548;border-radius:8px;padding:7px 12px;font-weight:700;margin-bottom:14px}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}.pg span{display:block;color:var(--mu);font-size:15px}.pg b{font-size:19px;font-weight:600}
+.gc{color:var(--g)}.rc2{color:var(--r)}
+.tr{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.ti{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:20px;flex:none}.ti.ok{background:#173a3a;color:var(--g)}.ti.bad{background:#3a1d33;color:var(--r)}.ti.stk{background:#3e2d2a;color:#f59e0b}
+.tm{flex:1;min-width:0;line-height:1.5}.tm b{font-size:18px}.tag{background:#2a2548;border-radius:8px;padding:3px 9px;font-size:13px;margin-left:6px;color:#cfcae6}.mu2{color:var(--mu);font-size:14px}
+.ta{text-align:right;line-height:1.5}.ta b{font-size:20px}
+.sess2{position:fixed;left:0;right:0;bottom:88px;background:#221d3b;border-top:1px solid var(--line);padding:14px 22px;color:var(--mu);font-size:17px}
+.sess2>div{display:flex;justify-content:space-between;margin:4px 0}.sess2 b{font-size:22px}
+.rc{width:128px;height:128px;border-radius:50%;margin:10px auto 22px;display:grid;place-items:center;font-size:56px}.rc.ok{background:#173a3a;color:var(--g)}.rc.bad{background:#3a1d33;color:var(--r)}
+.big{font-size:44px;font-weight:700;margin:14px 0 22px}
+.sbox{background:#1a2431;border-radius:16px;padding:18px;margin-bottom:24px;text-align:left}.sbox div{display:flex;justify-content:space-between;margin:9px 0;color:var(--mu);font-size:19px}.sbox b{color:#fff;font-weight:600}.sbox i{font-style:normal}
+
+/* ---- sizes tuned to match the original site (360px-wide phone layout) ---- */
+*{font-family:'Plus Jakarta Sans','Inter',system-ui,-apple-system,sans-serif}
+body{font-size:14px;padding-bottom:66px}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
+.banner{padding:8px 12px;gap:10px}.banner .ic{width:36px;height:36px;border-radius:10px;font-size:16px}.banner .ic svg{width:18px;height:18px}.banner b{font-size:13px}.banner small{font-size:11px}.banner button{padding:8px 12px;font-size:12px;border-radius:8px}.banner>span svg{width:16px;height:16px}
+.top{padding:8px 12px;gap:8px}
+.top .ib{width:28px;height:28px;border-radius:8px;font-size:13px}
+.top .ib.plain{width:24px;background:none;color:var(--mu)}.top .ib.plain svg{width:20px;height:20px}
+.pill{height:32px;min-height:0;padding:4px 8px;gap:6px;border-radius:10px}
+.pill .c{width:24px;height:24px;border-radius:7px;font-size:11px}
+#bal{font-size:13px;font-weight:700}
+.dep{padding:0 12px;height:28px;font-size:12px;border-radius:8px}
+.dd{top:52px;left:44px;min-width:190px;font-size:13px}.dd div{padding:10px 14px}
+.tabs{padding:8px 12px 6px;gap:4px}.tab{padding:7px 12px;font-size:13px;display:flex;align-items:center;gap:6px}.tab svg{width:15px;height:15px}
+.chartbox{height:108px}
+.sym{left:8px;top:8px;padding:6px 10px;gap:8px;border-radius:8px}.sym b{font-size:12px}.sym small{font-size:10px}.sym .si{color:#8b5cf6}.sym .si svg{width:16px;height:16px}
+.pct{right:8px;top:8px;padding:9px 10px;font-size:11px;border-radius:8px}
+.zm{left:8px;bottom:8px;gap:4px}.zm div{width:28px;height:28px;font-size:16px;border-radius:8px}
+.ptag{font-size:11px;padding:3px 6px;right:4px}
+.digits{padding:6px 4px 12px}
+.dg .n b{font-size:12px}
+.wrap{padding:10px 12px}
+.seg div{padding:8px;font-size:11px}
+.stake{margin:10px 0 8px;gap:8px}.stake>div.f{border-radius:12px;padding:4px 8px}.stake small{font-size:9px}.stake input{font-size:20px;padding:0}.stake button{width:32px;height:32px;align-self:center;font-size:18px;border-radius:8px}
+.chips{gap:4px;margin-bottom:8px}.chip{padding:6px 0;font-size:11px;border-radius:6px}
+.trio{gap:6px;margin-bottom:8px}.trio div{padding:6px 8px;border-radius:10px}.trio small{font-size:8.5px}.trio input{font-size:15px;padding:2px 0 0}
+.last{padding:8px 12px;border-radius:10px;font-size:11px}.last b{font-size:15px}.ld{width:8px;height:8px;margin-right:6px}
+.brow{gap:4px;margin-top:8px}.bd{padding:8px 0;font-size:13px;border-radius:8px}
+.go{gap:8px;margin-top:8px}.go button{padding:10px 12px;border-radius:12px;font-size:16px}.go .pt{font-size:11px}.go .r2{font-size:10.5px;margin-top:3px}.stp{font-size:15px}
+.note{font-size:10.5px;margin-top:8px}
+.nav{padding:6px 0 4px}.nav>div{font-size:11px}.nav i{display:flex;justify-content:center;height:22px;align-items:center}.nav i svg{width:20px;height:20px}
+.nav .ai i{width:36px;height:36px;margin:-20px auto 2px;border-radius:12px}.nav .ai i svg{width:18px;height:18px}
+.load{font-size:14px}.spin.sm{width:36px;height:36px;border-width:4px}
+.syml{top:46px;left:8px}.syml div{font-size:13px;padding:10px}.syml i{width:20px;height:20px}
+.toast{top:60px;font-size:13px;padding:9px 16px}
+/* auth */
+.auth{padding:40px 20px}.logo{font-size:18px;gap:10px}.logo i{width:36px;height:36px;border-radius:10px;font-size:16px}
+.auth h1{font-size:24px;margin:28px 0 4px}.auth p{font-size:13px}
+label{font-size:12px;margin:14px 0 6px}input{padding:12px 14px;font-size:14px;border-radius:12px}
+.btn{padding:12px;font-size:14px;border-radius:12px;margin-top:16px}
+.err{font-size:12px}
+/* sheets and menu */
+.sheet>div{padding:16px;border-radius:20px 20px 0 0}.sheet h2{font-size:17px}
+.opt{padding:12px;gap:12px;margin-top:10px;border-radius:12px}.opt .ic{width:40px;height:40px;font-size:18px;border-radius:10px}
+.side>div{width:80%}.side .hd{padding:14px 16px;font-size:16px}.side .me{padding:14px 16px;gap:12px}.side .me b{font-size:16px!important}.av{width:48px;height:48px;font-size:20px}
+.side .it{padding:14px 16px;font-size:15px}.mg{font-size:16px;width:24px;filter:grayscale(1) brightness(1.5)}.mi{width:26px;height:26px;font-size:12px;border-radius:8px}
+.sub{padding:12px 16px 12px 30px;font-size:14px;gap:12px}.sub span{filter:grayscale(1) brightness(1.5);width:20px}
+.sw{width:44px;height:24px;border-radius:12px}.sw:after{width:18px;height:18px;top:3px;right:3px}body.light .sw:after{left:3px}
+/* positions */
+.ptab{padding:12px 4px;font-size:13px}
+#hist{padding:12px 12px 170px}
+.pc{padding:12px;border-radius:14px;margin-bottom:10px}.pc .pi{width:36px;height:36px;font-size:16px;border-radius:10px}.pc .ph b{font-size:15px!important}.pc .ph span{font-size:12px}.pc .pk{font-size:13px}.pk i{width:8px;height:8px}
+.pc .stt{margin:8px 0;font-size:13px}.pc .usd{padding:5px 9px;font-size:12px;margin-bottom:10px}.pg{gap:10px 14px}.pg span{font-size:12px}.pg b{font-size:14px}
+.tr{padding:10px;gap:10px;border-radius:14px;margin-bottom:8px}.ti{width:38px;height:38px;font-size:15px}.tm b{font-size:14px}.ta b{font-size:15px}.mu2{font-size:11px}.tag{font-size:10px;padding:2px 7px}
+.sess2{bottom:62px;padding:10px 16px;font-size:13px}.sess2 b{font-size:16px}
+.empty{padding:60px 20px;font-size:13px}.empty .c{width:64px;height:64px;font-size:26px;margin-bottom:14px}.empty b{font-size:16px!important}
+.rc{width:64px;height:64px;font-size:28px;margin:6px auto 14px}.big{font-size:28px;margin:8px 0 14px}.sbox{padding:12px;margin-bottom:16px}.sbox div{font-size:14px;margin:6px 0}
+.sch{font-size:16px;padding-bottom:12px}.sci{width:34px;height:34px}.scinfo{font-size:13px;padding:12px}.scsel{padding:12px;font-size:14px}.scrow{font-size:13px}.scres{font-size:13px;padding:10px}.scbar{height:8px}
+.spin{width:56px;height:56px;border-width:6px}
+
+.toast{z-index:90}
+.page{position:fixed;inset:0;z-index:60;overflow:auto;background:#0d1118}
+.rph{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#1b2332;border-bottom:1px solid #263044;position:sticky;top:0;z-index:2}
+.rph>span{font-size:22px;padding:0 6px;cursor:pointer}.rph b{font-size:17px}
+.rpi{width:36px;height:36px;border-radius:50%;background:#1f3d45;display:grid;place-items:center;color:#2dd4bf}
+.rpb{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto}
+.rcard{background:#1d2535;border:1px solid #28344a;border-radius:16px;padding:16px}
+.rcard .ri{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:18px;margin-bottom:10px}
+.rcard b{font-size:15px;display:block;margin-bottom:6px}.rcard p{color:#8d98ad;font-size:13px;line-height:1.55}
+.rhero{text-align:center;padding:24px 16px}.rhero .rhe{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#4fb6b0,#3b9aa5);margin:0 auto 14px;display:grid;place-items:center;font-size:28px;color:#fff}
+.rhero h2{font-size:22px;margin-bottom:8px}
+.chat{display:flex;flex-direction:column;background:#1e2635}
+.chh{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(90deg,#c026d3,#7c3aed)}
+.chi{width:46px;height:46px;border-radius:50%;background:#ffffff33;display:grid;place-items:center;font-size:20px}
+.chh b{font-size:17px}.chh small{font-size:12.5px;opacity:.95}.od{display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;margin-right:6px}
+.chx{margin-left:auto;font-size:22px;padding:6px;cursor:pointer}
+.chm{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.chw{margin:auto;text-align:center;color:#8d98ad;padding:0 20px}.chc{width:80px;height:80px;border-radius:50%;background:#3a2c5e;margin:0 auto 16px;display:grid;place-items:center;font-size:32px;color:#e879f9}.chw b{display:block;color:#fff;font-size:20px;margin-bottom:8px}
+.bub{max-width:78%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.4;word-break:break-word}.bub.user{align-self:flex-end;background:#7c3aed}.bub.support{align-self:flex-start;background:#2c3548}
+.chf{display:flex;gap:10px;padding:12px;border-top:1px solid #2a3347;background:#1e2635}
+.chf input{flex:1;min-width:0;background:#141a26;border:0;border-radius:14px;padding:14px;color:#fff;font-size:14px}.chimg{width:48px;flex:none;border-radius:14px;background:#141a26;display:grid;place-items:center;color:#8d98ad}.chf button{width:52px;flex:none;border:0;border-radius:14px;background:#7c3aed;color:#fff;font-size:18px}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}.mh b{font-size:20px;cursor:pointer}.mu3{color:var(--mu);font-size:13px}
+.htabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:6px}.htabs div{flex:1;text-align:center;padding:12px;color:var(--mu);font-weight:600;border-bottom:3px solid transparent}.htabs .on{color:#fff;border-color:#8b5cf6}.htabs .on.wd{color:#ff4757;border-color:#ff4757}
+.hrow{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--line)}.hrow b{font-size:17px}
+.hck{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:15px;border:2px solid;flex:none}.hck.approved{color:#2dd4bf;border-color:#2dd4bf}.hck.pending{color:#f59e0b;border-color:#f59e0b}.hck.rejected{color:#ff4757;border-color:#ff4757}
+.hpill{padding:6px 12px;border-radius:14px;font-size:13px;background:#173a3a;color:#2dd4bf}.hpill.pending{background:#3e2d12;color:#f59e0b}.hpill.rejected{background:#3a1d26;color:#ff4757}
+.sfoot{display:flex;justify-content:space-around;margin:18px -16px -16px;padding:14px;border-top:1px solid var(--line);color:var(--mu);font-size:12px}
+.back{color:var(--mu);margin:14px 0 6px;cursor:pointer}
+.ic.tt{background:#1f3a3a;color:#fff;font-weight:800;font-size:22px}
+.ucard{background:#1d1b30;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}.unet{background:#14122a;border-radius:12px;padding:12px;margin-bottom:14px}
+.qrbox{position:relative;width:206px;height:206px;margin:0 auto 14px;background:#fff;border-radius:14px;display:grid;place-items:center}.qrlogo{position:absolute;width:40px;height:40px;border-radius:50%;background:#26a17b;color:#fff;font-weight:800;display:grid;place-items:center;border:3px solid #fff}
+.uaddr{display:flex;align-items:center;gap:10px;background:#14122a;border-radius:12px;padding:12px}.uaddr code{flex:1;word-break:break-all;font-family:monospace;font-size:14px}.cp{width:34px;height:34px;border-radius:50%;background:#2a2548;display:grid;place-items:center;flex:none;cursor:pointer}
+.urow{display:flex;justify-content:space-between;gap:14px;margin:12px 0;color:var(--mu);font-size:14px}.urow b{color:var(--tx);text-align:right}
+.uwarn{color:#f59e0b;font-size:13px;line-height:1.5;margin-top:6px}
+.scfld{background:#181429;border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:600}
+
+/* PalOption reference finish: deep violet panels, rounded controls, Jakarta typography */
+:root{--bg:#100f18;--bar:#1d1832;--card:#241e3d;--in:#171329;--line:#342b50;--pu:#7938e8;--tx:#f8f7ff;--mu:#9690aa;--g:#20c66b;--r:#ff4657}
+*{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--tx);font-weight:500}
+input,select,textarea{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--in);border:1px solid #302746;color:var(--tx);border-radius:14px}
+.btn,.dep{background:linear-gradient(110deg,#7938e8,#7025d8);box-shadow:0 8px 24px #7938e833}
+.banner{background:linear-gradient(105deg,#6425c9 0%,#8b2be5 58%,#d12c91 100%)}
+.top,.nav{background:#1d1832;border-color:#302744}
+.pill,.opt,.pc,.trio>div,.last{background:#241e3d;border-color:#342b50}
+.sheet{background:#000a;backdrop-filter:blur(5px)}
+.sheet>div{background:#211b38;border:1px solid #342b50;box-shadow:0 -12px 40px #0005}
+.sheet.mid>div{border-radius:22px}
+.mh{align-items:center;padding-bottom:16px;border-bottom:1px solid #342b50;margin-bottom:12px}
+.mh h2{font-size:20px;font-weight:800;letter-spacing:-.35px}
+.mh .mu3{font-size:13px;margin-top:4px}
+.opt{border-radius:16px}
+.opt[style*="display:block"]{padding:18px 16px;background:#28213f}
+.opt label,.ucard label{font-size:13px;color:#aaa4bc;margin:18px 0 8px}
+.opt input,.ucard input{height:58px;padding:0 18px;font-size:18px;font-weight:700;background:#171329;border:1px solid transparent;border-radius:16px}
+.back{font-size:14px;margin:12px 0 18px}
+.ucard{background:#28213f;border:1px solid #3a3154;border-radius:16px;padding:16px}
+.unet{background:#171329;border-radius:14px}
+.ucard .uaddr{background:#171329}
+.sfoot{border-color:#342b50;color:#817a98}
+.ratebox{margin:12px 0 4px;padding:12px 14px;border-radius:12px;background:#171329;border:1px solid #342b50}
+.ratebox .rate-line{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:#a39cb6}
+.ratebox strong{color:#f6f3ff;font-size:15px;font-weight:800;white-space:nowrap}
+.ratebox small{display:block;color:#817a98;font-size:11px;margin-top:5px;line-height:1.4}
+.ratebox .rate-value{color:#a78bfa}
+.ratebox.crypto .rate-value{color:#2dd4bf}
+.ratebox .rate-loading{color:#a78bfa}
+#pb{min-height:58px;border-radius:16px;font-size:17px;font-weight:800}
+@media(min-width:560px){.sheet>div{max-width:560px;margin:0 auto 0;border-radius:26px 26px 0 0}.sheet{justify-content:center}.sheet>div{align-self:flex-end}}
+
+</style></head><body>
+
+<div id="reg" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
+<h1>Create account</h1><p>Fill in your details to get started</p>
+<label>Full Name</label><input id="rn" placeholder="John Doe">
+<label>Email</label><input id="re" type="email" placeholder="you@example.com">
+<label>Password</label><input id="rp" type="password" placeholder="Min 6 characters">
+<label>Confirm Password</label><input id="rc" type="password" placeholder="Repeat your password">
+<label style="display:flex;gap:10px;align-items:center;color:var(--tx)"><input id="ra" type="checkbox" style="width:22px"> I am 18+ and agree to the Terms of Service and Privacy Policy</label>
+<div class="err" id="rerr"></div><button class="btn" onclick="register()">Create Account →</button>
+<p style="text-align:center;margin-top:28px">Already have an account? <a onclick="go('login')">Sign in</a></p></div>
+
+<div id="login" class="auth hide"><div class="logo"><i>↗</i>PalOption</div>
+<h1>Welcome back</h1><p>Sign in to your account to continue</p>
+<label>Email</label><input id="le" type="email" placeholder="you@example.com">
+<label>Password</label><input id="lp" type="password" placeholder="Enter your password">
+<div class="err" id="lerr"></div><button class="btn" onclick="login()">Sign In →</button>
+<p style="text-align:center;margin-top:28px">Don't have an account? <a onclick="go('register')">Create account</a></p></div>
+
+<div id="app" class="hide">
+<div class="banner" id="bn"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></div><div class="t"><b>Add PalOption to Home Screen</b><small>Get a better trading experience</small></div><button onclick="toast('Use your browser menu → Add to Home screen',1)">Install</button><span onclick="$('bn').remove()"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+<div class="top"><div class="ib plain" onclick="menu(1)"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div><div class="ib">P</div>
+<div class="pill" onclick="ddt()"><div class="c" id="accL">D</div><span id="bal">$0.00</span><span style="color:var(--mu)">⌄</span></div>
+<div class="ib plain" onclick="snd=!snd;toast(snd?'Sound on':'Sound off',1)"><svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></div>
+<button class="dep" onclick="sheet('dep')">Deposit</button><div class="ib plain" onclick="toast('No new notifications',1)"><svg class="i" viewBox="0 0 24 24"><path d="M6 17h12l-2-3v-4a4 4 0 00-8 0v4l-2 3zM10 20h4"/></svg></div></div>
+<div id="dd" class="dd hide"><div onclick="setAcc('demo')">Demo account</div><div onclick="setAcc('real')">Real account</div></div>
+
+<div id="vTrade">
+<div class="tabs"><div class="tab" id="kmd" onclick="setKind('md')"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Matches/Differs</div><div class="tab on" id="keo" onclick="setKind('eo')"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/></svg>Even/Odd</div><div class="tab" id="kou" onclick="setKind('ou')"><svg class="i" viewBox="0 0 24 24"><path d="M8 4v16M8 4L4.5 7.5M8 4l3.5 3.5M16 20V4M16 20l-3.5-3.5M16 20l3.5-3.5"/></svg>Over/Under</div></div>
+<div class="chartbox"><canvas id="cv"></canvas>
+<div class="sym" onclick="symMenu()"><span class="si"><svg class="i" viewBox="0 0 24 24"><path d="M7 20V10M12 20V4M17 20v-8"/></svg></span><div><b id="symN">Vol 10 (1s)</b><small id="pr">0.00</small></div><span style="color:var(--mu)">⌄</span></div>
+<div class="pct">100%</div><div class="zm"><div onclick="zoom(1)">+</div><div onclick="zoom(-1)">−</div></div><div id="axis"></div>
+<div id="load" class="load"><div class="spin sm"></div>Loading data...</div><div id="syml" class="syml hide"></div></div>
+<div class="digits" id="dg"></div>
+<div class="wrap">
+<div class="seg"><div id="mA" class="on" onclick="setMode('auto')">AUTO</div><div id="mM" onclick="setMode('manual')">MANUAL</div></div>
+<div class="stake"><button onclick="adj(-1)">−</button><div class="f"><small>STAKE</small><input id="st" type="number" value="1" min="0.1" max="100" step="0.1"></div><button onclick="adj(1)">+</button></div>
+<div class="chips" id="chips"></div>
+<div class="trio" id="trio"><div><small style="color:var(--g)">TARGET PROFIT</small><input id="tp" type="number" value="50"></div><div><small style="color:var(--r)">STOP LOSS</small><input id="sl" type="number" value="50"></div><div><small style="color:#f59e0b">MULTIPLIER</small><input id="mu" type="number" value="1" min="1" max="2" step="0.1"></div></div>
+<div class="last" id="lastBox"></div>
+<div class="brow hide" id="brow"></div>
+<div class="go"><button class="even" id="bA" onclick="press('A')"></button><button class="odd" id="bB" onclick="press('B')"></button></div>
+<p class="note" id="chance"></p>
+<p class="note">Odds are the same on demo and real accounts: every tick's last digit is random and payouts are set from the true win chance (shown above). Digit percentages are just recent frequencies and do not predict the next digit. Most traders lose money over time. Never stake money you can't afford to lose. 18+ only.</p>
+</div></div>
+
+<div id="vPos" class="hide"><div class="ptabs"><div id="p0" class="ptab" onclick="ptab(0)">Open (0)</div><div id="p1" class="ptab on" onclick="ptab(1)">Closed (0)</div><div id="p2" class="ptab" onclick="ptab(2)">Transactions</div></div><div id="hist"></div>
+<div class="sess2"><div><span>Last Session</span><span id="sA"></span></div><div><span>Session P/L:</span><b id="sB"></b></div></div></div>
+
+<div class="nav"><div id="nT" class="on" onclick="view('Trade')"><i><svg class="i" viewBox="0 0 24 24"><path d="M7 20V10M12 20V4M17 20v-8"/></svg></i>Trade</div><div class="ai" onclick="scan()"><i><svg class="i" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></i>Scanner</div><div id="nP" onclick="view('Pos')"><i><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i>Positions</div></div>
+</div>
+<div id="ov"></div>
+
+<script>
+const API_BASE='https://paloption-a0ax.onrender.com';
+const $=id=>document.getElementById(id);
+let tok=localStorage.pt||'',U=null,acc='demo',mode='auto',snd=true,pts=[],tms=[],digs=[],lastT=0,zm=60,tabP=1,auto=null,kind='eo',barrier=5,sym='R_10_1s',SYMS=[],RTP=0.976,lastRes=null,poll=null,lastRun={n:0,w:0,l:0,pl:0},sess={demo:{n:0,w:0,pl:0},real:{n:0,w:0,pl:0}};
+async function api(p,b){const r=await fetch(API_BASE+'/api/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:b?JSON.stringify(b):undefined});const j=await r.json();if(!r.ok)throw j.error||'Error';return j}
+function go(v){['reg','login','app'].forEach(x=>$(x).classList.add('hide'));$(v=='register'?'reg':v).classList.remove('hide');location.hash=v=='app'?'trade':v}
+function session(j){tok=j.token;localStorage.pt=tok;U=j.user;go('app');init()}
+async function register(){$('rerr').textContent='';if($('rp').value!=$('rc').value)return $('rerr').textContent='Passwords do not match';if(!$('ra').checked)return $('rerr').textContent='Please confirm you are 18+ and accept the terms';try{session(await api('register',{name:$('rn').value,email:$('re').value,password:$('rp').value}))}catch(e){$('rerr').textContent=e}}
+async function login(){try{session(await api('login',{email:$('le').value,password:$('lp').value}))}catch(e){$('lerr').textContent=e}}
+function toast(t,ok){const d=document.createElement('div');d.className='toast';d.style.background=ok?'var(--g)':'var(--r)';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+let hTab='deposit',chatT=null,scBest=null,USDT_ADDR='TVQ2apPfjAL1BUFkvg2Ep8vEzs5KgtyGSP',MIN_USDT=4;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const stt=x=>(x.status=='paid'||x.status=='approved')?'approved':(x.status=='failed'||x.status=='rejected')?'rejected':'pending';
+const hdate=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+let accOpen=false;
+function menu(o){$('ov').innerHTML=o?`<div class="side" onclick="menu(0)"><div onclick="event.stopPropagation()"><div class="hd"><span>✕ &nbsp;&nbsp;Menu</span><span style="font-size:15px">🇬🇧 EN</span></div><div class="me"><div class="av">${U.name[0].toUpperCase()}</div><div><b style="font-size:20px">${esc(U.name)}</b><br><span style="color:var(--mu)">${esc(U.email).replace(/^(.{2}).*(.{2}@.*)$/,'$1***$2')}</span></div></div>
+<div class="it" style="gap:16px;justify-content:flex-start"><span class="mi">P</span>PalOption</div>
+<div class="it ${accOpen?'hl2':''}" onclick="accOpen=!accOpen;menu(1)"><span class="ml"><span class="mg">⚙</span>Account settings</span><span>${accOpen?'⌃':'⌄'}</span></div>
+${accOpen?`<div class="sub" onclick="chName()"><span>✎</span>Change Name<em>›</em></div><div class="sub" onclick="chPass()"><span>🔒</span>Change Password<em>›</em></div><div class="sub" onclick="toast('2FA coming soon',1)"><span>📱</span>Two-Factor Auth (2FA)<em>›</em></div><div class="sub" onclick="toast('Identity verification coming soon',1)"><span>👤</span>Verify Identity<em>›</em></div>`:''}
+<div class="it" onclick="sheet('dep')"><span class="ml"><span class="mg">⬇</span>Deposit</span><span>›</span></div><div class="it" onclick="sheet('wd')"><span class="ml"><span class="mg">⬆</span>Withdraw</span><span>›</span></div><div class="it" onclick="hist2('deposit')"><span class="ml"><span class="mg">🕒</span>History</span><span>›</span></div><div class="it hl" onclick="toast('Coming soon',1)"><span class="ml"><span class="mg">🎁</span>Refer &amp; Earn</span></div>
+<div class="it" style="border-top:1px solid var(--line);margin-top:8px" onclick="document.body.classList.toggle('light');menu(1)"><span class="ml"><span class="mg">☾</span>Dark theme</span><div class="sw"></div></div>
+<div class="it" style="border-top:1px solid var(--line)" onclick="toast('Use Live Chat for help',1)"><span class="ml"><span class="mg">?</span>Help Centre</span></div><div class="it" onclick="menu(0);openResp()"><span class="ml"><span class="mg">🛡</span>Responsible Trading</span><span>›</span></div><div class="it" onclick="menu(0);openChat()"><span class="ml"><span class="mg">💬</span>Live Chat</span></div><div class="it" onclick="localStorage.clear();location.reload()"><span class="ml"><span class="mg">⎋</span>Log out</span></div>
+<div style="padding:18px;color:var(--mu);text-align:center;font-size:15px;border-top:1px solid var(--line)">${new Date().toISOString().slice(0,19).replace('T',' ')} GMT <span style="color:#8b5cf6">●</span></div></div></div>`:''}
+function chName(){modal(`<div style="display:flex;justify-content:space-between"><h2>Change Name</h2><b onclick="menu(0)">✕</b></div><label>New name</label><input id="cn" value="${U.name}"><button class="btn" onclick="saveName()">Save</button>`,1)}
+async function saveName(){try{const j=await api('account/name',{name:$('cn').value});U=j.user;menu(0);toast('Name updated',1)}catch(e){toast(e,0)}}
+function chPass(){modal(`<div style="display:flex;justify-content:space-between"><h2>Change Password</h2><b onclick="menu(0)">✕</b></div><label>Current password</label><input id="op" type="password"><label>New password (min 6)</label><input id="np" type="password"><button class="btn" onclick="savePass()">Update password</button>`,1)}
+async function savePass(){try{await api('account/password',{oldPassword:$('op').value,newPassword:$('np').value});menu(0);toast('Password updated',1)}catch(e){toast(e,0)}}
+function modal(h,mid){$('ov').innerHTML=`<div class="sheet ${mid?'mid':''}" onclick="menu(0)"><div onclick="event.stopPropagation()">${h}</div></div>`}
+function openResp(){const C=[['$','#1c3f3a','#22c55e','Set a Budget','Only trade with money you can afford to lose. Never use funds needed for essential expenses.'],['◷','#2a2550','#8b5cf6','Take Breaks','Set time limits for your trading sessions. Regular breaks help maintain focus and clear thinking.'],['⚠︎','#3b2f1a','#f59e0b','Know the Risks','Trading synthetic indices carries a high risk of loss. Every contract has a house edge, so most traders lose money over time. Past ticks do not predict the next one.'],['↺','#3a1d26','#ff4757','Do Not Chase Losses','Losing streaks happen. Raising your stake to win money back is how small losses become big ones.'],['⛨','#1f3d45','#2dd4bf','Use Limits','In Auto mode set a target profit and a stop loss, and keep your multiplier at 1.'],['♡','#2a2550','#c084fc','Ask for Help','If trading is affecting your money, mood or relationships, stop and talk to someone you trust or a local support service.']];
+const p=document.createElement('div');p.id='resp';p.className='page';p.innerHTML=`<div class="rph"><span onclick="$('resp').remove()">←</span><div class="rpi">⛨</div><b>Responsible Trading</b></div><div class="rpb"><div class="rcard rhero"><div class="rhe">♡</div><h2>Trade Responsibly</h2><p>At PalOption, we care about your well-being. Trading should be enjoyable and within your means. Here are some guidelines to help you trade responsibly.</p></div>${C.map(c=>`<div class="rcard"><div class="ri" style="background:${c[1]};color:${c[2]}">${c[0]}</div><b>${c[3]}</b><p>${c[4]}</p></div>`).join('')}</div>`;document.body.appendChild(p)}
+function openChat(){if($('chat'))return;const p=document.createElement('div');p.id='chat';p.className='page chat';p.innerHTML=`<div class="chh"><div class="chi">💬</div><div><b>Live Support</b><br><small><i class="od"></i>Online • We reply as soon as we can</small></div><span class="chx" onclick="closeChat()">✕</span></div><div id="chm" class="chm"></div><div class="chf"><div class="chimg" onclick="toast('Image upload coming soon',1)">🖼</div><input id="cht" placeholder="Type your message..." onkeydown="if(event.key=='Enter')sendChat()"><button onclick="sendChat()">➤</button></div>`;document.body.appendChild(p);loadChat();chatT=setInterval(loadChat,5000)}
+function closeChat(){clearInterval(chatT);const p=$('chat');if(p)p.remove()}
+async function loadChat(){try{const j=await api('support'),el=$('chm');if(!el)return;const stick=el.scrollHeight-el.scrollTop-el.clientHeight<80||!el.children.length;
+el.innerHTML=j.length?j.map(m=>`<div class="bub ${m.from=='user'?'user':'support'}">${esc(m.text)}</div>`).join(''):`<div class="chw"><div class="chc">💬</div><b>Welcome to Support!</b><p>Send us a message and we'll get back to you as soon as possible.</p></div>`;if(stick)el.scrollTop=el.scrollHeight}catch{}}
+async function sendChat(){const i=$('cht'),t=i.value.trim();if(!t)return;i.value='';try{await api('support',{text:t});loadChat()}catch(e){toast(e,0);i.value=t}}
+async function hist2(t){if(t)hTab=t;try{U=await api('me')}catch{}const L=(hTab=='deposit'?U.deposits:U.withdrawals)||[];
+modal(`<div class="mh"><h2>Transaction History</h2><b onclick="menu(0)">✕</b></div><div class="htabs"><div class="${hTab=='deposit'?'on':''}" onclick="hist2('deposit')">Deposits</div><div class="${hTab=='withdrawal'?'on wd':''}" onclick="hist2('withdrawal')">Withdrawals</div></div>${L.length?L.map(x=>{const s=stt(x);return `<div class="hrow"><span class="hck ${s}">${s=='approved'?'✓':s=='pending'?'…':'✕'}</span><div style="flex:1"><b>$${fmt(x.usd)}</b><br><span class="mu2">${String(x.method).toLowerCase()=='usdt'?'USDT':'MPESA'} • ${hdate(x.t)}</span></div><span class="hpill ${s}">${s}</span></div>`}).join(''):`<div class="empty" style="padding:40px 10px">No ${hTab}s yet</div>`}`,1)}
+const KLAB={eo:'Even / Odd',md:'Matches / Differs',ou:'Over / Under'};
+function scan(){modal(`<div class="sch"><span class="sci">✦</span><b>Entry Scanner</b><span class="scx" onclick="menu(0)">✕</span></div><div class="scb"><div class="scinfo">Pick the market category you want to scan. The scanner walks every <b>volatility</b> / <b>synthetic</b> index and compares how its last 500 ticks split for that category. It only describes past ticks: every tick is random, so no entry point has an edge.</div>
+<label>Market</label><select id="sck" class="scsel"><option value="eo">Even / Odd</option><option value="md">Matches / Differs</option><option value="ou">Over / Under</option></select>
+<div class="scrow"><span id="scl">Ready to scan</span><b id="scn">0/${SYMS.length||1}</b></div><div class="scbar"><i id="scp"></i></div><div id="scr"></div>
+<button class="btn" id="scgo" onclick="runScan()">🔍 &nbsp;Scan All Markets</button><button class="btn ghost" id="scld" disabled onclick="loadScan()">Load market</button></div>`,1)}
+function scoreTicks(k,d){const n=d.length;if(n<50)return null;
+if(k=='eo'){const e=d.filter(x=>x%2==0).length/n;return{skew:Math.abs(e-.5),text:`Even ${(e*100).toFixed(1)}% · Odd ${((1-e)*100).toFixed(1)}%`,n}}
+if(k=='ou'){const hi=d.filter(x=>x>=5).length/n;return{skew:Math.abs(hi-.5),text:`Digits 5-9 ${(hi*100).toFixed(1)}% · Digits 0-4 ${((1-hi)*100).toFixed(1)}%`,n}}
+const c=Array(10).fill(0);d.forEach(x=>c[x]++);const m=Math.max(...c),dg=c.indexOf(m);return{skew:m/n-.1,text:`Digit ${dg} appeared ${(m/n*100).toFixed(1)}% of the time (expected 10%)`,digit:dg,n}}
+async function runScan(){const k=$('sck').value,list=SYMS.length?SYMS:[{id:sym,name:sym,short:sym}];$('scgo').disabled=true;$('scld').disabled=true;$('scr').innerHTML='';let best=null;
+for(let i=0;i<list.length;i++){if(!$('scl'))return;const s=list[i];$('scl').textContent='Scanning '+s.name+' ('+(i+1)+'/'+list.length+')...';$('scn').textContent=(i+1)+'/'+list.length;$('scp').style.width=((i+1)/list.length*100)+'%';
+let t=[];try{t=await api('ticks?symbol='+s.id)}catch{}const st=scoreTicks(k,t.map(x=>x.digit));if(st&&(!best||st.skew>best.skew))best={...st,s,k}}
+if(!$('scl'))return;if(!best){$('scl').textContent='Not enough ticks yet, try again shortly';$('scgo').disabled=false;return}
+scBest=best;$('scl').textContent='Scan complete';
+$('scr').innerHTML=`<div class="scres"><b>Most uneven recent ticks:</b> ${best.s.name} | ${KLAB[k]} | ${best.text} (last ${best.n} ticks)<br><span style="color:var(--mu)">Every tick is random, so this does not predict the next result. The win chance stays the same on every market.</span></div><label>Selected Market</label><div class="scfld">${best.s.name}</div><label>Trade Type</label><div class="scfld">${KLAB[k]}</div>`;
+$('scgo').disabled=false;$('scgo').textContent='🔍  Re-scan';$('scld').disabled=false;$('scld').textContent='Load '+best.s.name}
+function loadScan(){const b=scBest;if(!b)return;menu(0);setKind(b.k);if(b.k=='md'&&b.digit!=null){barrier=b.digit;drawBrow();updateBtns()}pickSym(b.s.id);toast('Loaded '+(b.s.short||b.s.name),1)}
+function sheet(k){const d=k=='dep',ar=d?'↗':'→';modal(`<div class="mh"><div><h2>${d?'Deposit Funds':'Withdraw Funds'}</h2><p class="mu3">${d?'Choose your payment method':'Balance: $'+fmt(U.real)}</p></div><b onclick="menu(0)">✕</b></div>
+<div id="pf"><div class="opt" onclick="pm('${k}','mpesa')"><div class="ic">📱</div><div style="flex:1"><b>M-Pesa</b><br><span class="mu3">${d?'Instant mobile money':'Withdraw to mobile money'}</span></div><span class="mu3">${ar}</span></div>
+<div class="opt" onclick="pm('${k}','usdt')"><div class="ic tt">T</div><div style="flex:1"><b>USDT (TRC20)</b><br><span class="mu3">${d?'Cryptocurrency · credited after we confirm it':'Withdraw to crypto wallet'}</span></div><span class="mu3">${ar}</span></div>
+${d?'<div class="opt dis"><div class="ic">▭</div><div style="flex:1"><b>Card</b><br><span class="mu3">Visa, Mastercard · coming soon</span></div></div>':''}</div>
+${d?'<div class="sfoot"><span>● Secure</span><span>● Fast</span><span>● Support</span></div>':''}`)}
+let USD_KES_RATE=129.92,fxLoadedAt=0;
+async function loadFxRate(){
+  if(Date.now()-fxLoadedAt<300000)return USD_KES_RATE;
+  try{const r=await fetch('https://open.er-api.com/v6/latest/USD');if(!r.ok)throw Error('rate unavailable');const j=await r.json();const rate=Number(j?.rates?.KES);if(rate>0){USD_KES_RATE=rate;fxLoadedAt=Date.now()}}
+  catch(e){/* Keep the last known/fallback display rate; payment amounts remain USD. */}
+  return USD_KES_RATE;
+}
+function ratePanel(kind){
+  if(kind==='mpesa')return `<div class="ratebox" id="fxbox"><div class="rate-line"><span>Estimated M-Pesa amount</span><strong id="fxkes" class="rate-value">≈ KES ${(10*USD_KES_RATE).toLocaleString('en-KE',{maximumFractionDigits:0})}</strong></div><div class="rate-line" style="margin-top:7px"><span>Exchange rate</span><strong id="fxrate">1 USD = ${USD_KES_RATE.toFixed(2)} KES</strong></div><small>Indicative live exchange rate. Your payment provider may apply its own fees or rate.</small></div>`;
+  return `<div class="ratebox crypto"><div class="rate-line"><span>Estimated crypto amount</span><strong id="fxkes" class="rate-value">≈ 10.00 USDT</strong></div><div class="rate-line" style="margin-top:7px"><span>Reference rate</span><strong id="fxrate">1 USD ≈ 1.00 USDT</strong></div><small>USDT is a USD-pegged stablecoin. Actual received value can vary with network or provider fees.</small></div>`;
+}
+function updateRateDisplay(method){
+ const amount=method==='mpesa'?(+$('pa')?.value||0):(+$('ua2')?.value||+$('pa')?.value||0);
+ const out=$('fxkes'),rate=$('fxrate');if(!out||!rate)return;
+ if(method==='mpesa'){out.textContent='≈ KES '+(amount*USD_KES_RATE).toLocaleString('en-KE',{minimumFractionDigits:0,maximumFractionDigits:2});rate.textContent='1 USD = '+USD_KES_RATE.toFixed(2)+' KES'}
+ else{out.textContent='≈ '+amount.toFixed(2)+' USDT';rate.textContent='1 USD ≈ 1.00 USDT'}
+}
+function pm(k,m){const d=k=='dep';let h='';
+if(m=='mpesa')h=`<div class="opt" style="display:block;cursor:default"><b style="font-size:18px">M-Pesa</b><br><span class="mu3">Min: $1 • Max: $1,900${d?'':' · Balance: $'+fmt(U.real)}</span><label>Amount (USD)</label><input id="pa" type="number" min="1" max="1900" step="0.01" placeholder="$ 0.00" oninput="updateRateDisplay('mpesa');$('pb').textContent='${d?'Deposit':'Withdraw'} $'+(+this.value||0)+' via M-Pesa'">${ratePanel('mpesa')}${d?`<div class="chips" style="margin-top:12px;flex-wrap:wrap">${[10,25,50,100,250,500].map(v=>`<div class="chip" onclick="$('pa').value=${v};updateRateDisplay('mpesa');$('pb').textContent='Deposit $${v} via M-Pesa'">$${v}</div>`).join('')}</div><label>Phone Number</label><input id="pp" type="tel" placeholder="e.g., 0712345678 or 254712345678">`:`<label>M-Pesa number</label><input id="pp" type="tel" placeholder="0712345678"><p class="mu3" style="margin-top:12px">Withdrawals are reviewed before they are paid.</p>`}</div><button class="btn" id="pb" onclick="pay2('${k}','mpesa')">${d?'Deposit':'Withdraw'} $0 via M-Pesa</button>`;
+else if(d)h=`<div class="ucard"><div class="unet"><span class="mu3">Network</span><div><b style="font-size:22px">TRX</b> &nbsp;<span class="mu3">Tron (TRC20)</span></div></div>
+<div class="qrbox"><div id="qr"></div><div class="qrlogo">T</div></div>
+<label style="margin-top:0">USDT (TRC20) deposit address</label><div class="uaddr"><code id="ua">${USDT_ADDR}</code><span class="cp" onclick="copyAddr()">⧉</span></div>
+<div class="urow"><span>Deposit to</span><b>Real wallet</b></div><div class="urow"><span>Minimum deposit</span><b>$${MIN_USDT.toFixed(2)} USDT</b></div><div class="urow"><span>Credited</span><b>After we confirm the transfer</b></div>
+<p class="uwarn">Send only USDT on the TRON (TRC20) network. Other coins or networks cannot be recovered.</p></div>
+<div class="ucard"><b style="font-size:18px">After you send</b><p class="mu3" style="margin-top:4px">Tell us about the transfer so we can credit it</p><label>Amount sent (USDT)</label><input id="ua2" type="number" min="${MIN_USDT}" step="0.01" placeholder="$ 0.00" oninput="updateRateDisplay('usdt')">${ratePanel('usdt')}<label>Transaction ID (TXID)</label><input id="ux" placeholder="Paste the transaction hash"></div><button class="btn" onclick="usdtSend()">I've sent it</button>`;
+else h=`<div class="opt" style="display:block;cursor:default"><b style="font-size:18px">USDT (TRC20)</b><br><span class="mu3">Min: $10 • Max: $1,900 · Balance: $${fmt(U.real)}</span><label>Amount (USD)</label><input id="pa" type="number" min="10" max="1900" step="0.01" placeholder="0.00" oninput="updateRateDisplay('usdt')">${ratePanel('usdt')}<label>TRC20 wallet address</label><input id="pp" placeholder="Starts with T"><p class="mu3" style="margin-top:12px">Withdrawals are reviewed before they are paid. Double-check the address: sends cannot be reversed.</p></div><button class="btn" onclick="pay2('wd','usdt')">Withdraw</button>`;
+$('pf').innerHTML=`<p class="back" onclick="sheet('${k}')">← Back</p>`+h;
+if(m=='mpesa')loadFxRate().then(()=>updateRateDisplay('mpesa'));
+if(m=='usdt'){updateRateDisplay('usdt');if(d){const el=$('qr');if(el&&window.QRCode){el.innerHTML='';new QRCode(el,{text:USDT_ADDR,width:180,height:180,correctLevel:QRCode.CorrectLevel.M})}}}
+}
+function copyAddr(){const done=()=>toast('Address copied',1);if(navigator.clipboard)navigator.clipboard.writeText(USDT_ADDR).then(done).catch(()=>toast('Press and hold the address to copy',1));else toast('Press and hold the address to copy',1)}
+async function usdtSend(){try{await api('deposit/usdt',{amount:+$('ua2').value,txid:$('ux').value.trim()});try{U=await api('me')}catch{}
+modal(`<div style="text-align:center"><div class="rc ok">✓</div><h2>Transfer submitted</h2><p class="mu3" style="margin:12px 0 18px;line-height:1.5">We will check it on the Tron network and credit your real wallet once it is confirmed. Follow it under History.</p><button class="btn" style="margin:0" onclick="menu(0)">Close</button></div>`,1)}catch(e){toast(e,0)}}
+async function pay2(k,m){try{
+if(k=='wd'){const j=await api('withdraw',m=='mpesa'?{method:'mpesa',amount:+$('pa').value,phone:$('pp').value}:{method:'usdt',amount:+$('pa').value,address:$('pp').value.trim()});U=j.user;money();menu(0);return toast('Withdrawal requested, pending approval',1)}
+const r=await api('deposit/mpesa',{amount:+$('pa').value,phone:$('pp').value});
+modal(`<div style="text-align:center"><div class="spin"></div><h2>Processing Payment</h2><p class="mu3" style="margin:12px 0">Please check your phone and enter your M-Pesa PIN to complete the payment.</p><p class="mu3">Your balance will be updated automatically once the payment is confirmed.</p><button class="btn ghost" style="margin-top:18px" onclick="menu(0)">Close &amp; Check Later</button></div>`,1);
+for(let i=0;i<60;i++){await new Promise(z=>setTimeout(z,3000));const s=await api('deposit/status/'+r.id);if(s.status!='pending'){U=s.user;money();if($('ov').innerHTML)menu(0);return toast(s.status=='paid'?'Deposit received':'Payment failed or cancelled',s.status=='paid')}}}catch(e){toast(e,0)}}
+const fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function money(){$('bal').textContent='$ '+fmt(U[acc]);$('bal').style.color=acc=='demo'?'var(--r)':'#a78bfa';$('accL').textContent=acc=='demo'?'D':'R';$('accL').style.background=acc=='demo'?'var(--r)':'var(--pu)'}
+function setAcc(a){stopAuto();acc=a;$('dd').classList.add('hide');money();if(!$('vPos').classList.contains('hide'))ptab(tabP)}
+function ddt(){$('dd').innerHTML=`<div onclick="setAcc('demo')">Demo account &nbsp;<b>$${fmt(U.demo)}</b></div><div onclick="setAcc('real')">Real account &nbsp;<b>$${fmt(U.real)}</b></div>`;$('dd').classList.toggle('hide')}
+function setMode(m){mode=m;$('mA').className=m=='auto'?'on':'';$('mM').className=m=='manual'?'on':'';$('trio').classList.toggle('hide',m!='auto');stopAuto()}
+function adj(d){const v=+$('st').value||1,s=d>0?(v<1?.1:v<10?1:5):(v<=1?.1:v<=10?1:5);$('st').value=Math.min(100,Math.max(.1,Math.round((v+d*s)*100)/100));pay()}
+function pay(){updateBtns();[...$('chips').children].forEach(c=>c.classList.toggle('on',+c.dataset.v==+$('st').value))}
+function sides(){if(kind=='eo')return[{n:'Even',p:.5,ok:1,pick:'even'},{n:'Odd',p:.5,ok:1,pick:'odd'}];
+if(kind=='ou')return[{n:'Over',p:(9-barrier)/10,ok:barrier<=8,pick:'over'},{n:'Under',p:barrier/10,ok:barrier>=1,pick:'under'}];
+return[{n:'Match',p:.1,ok:1,pick:'match'},{n:'Differ',p:.9,ok:1,pick:'differ'}]}
+function updateBtns(){const st=+$('st').value||0,S=sides();['A','B'].forEach((k,i)=>{if(auto&&auto.side==k)return;const s=S[i],m=s.ok?RTP/s.p:0,b=$('b'+k);b.classList.remove('stop','dim');
+b.innerHTML=`<div class="row"><span>${s.n}</span><span class="pt">$${(st*m).toFixed(2)}</span></div><div class="row r2"><span>${s.ok?((m-1)*100).toFixed(1)+'%':'n/a'}</span><span>Payout</span></div>`;b.style.opacity=s.ok?'':'.4'});
+$('chance').textContent=S.map(s=>`${s.n} ${(s.p*100).toFixed(0)}%`).join(' · ')+' win chance'}
+function setKind(k){stopAuto();kind=k;['md','eo','ou'].forEach(x=>$('k'+x).classList.toggle('on',x==k));$('brow').classList.toggle('hide',k=='eo');if(k=='ou')barrier=Math.min(8,Math.max(1,barrier));drawBrow();updateBtns()}
+function drawBrow(){$('brow').innerHTML=[...Array(10).keys()].map(i=>`<div class="bd${i==barrier?' on':''}" onclick="barrier=${i};drawBrow();updateBtns()">${i}</div>`).join('')}
+function setLast(){const l=auto,r=l||lastRun,pl=r.pl||0;$('lastBox').classList.toggle('live',!!l);$('lastBox').innerHTML=`<span>${l?'<i class="ld"></i><span class="lv">LIVE</span> &nbsp;':'LAST &nbsp;'}${r.n}T · ${r.w}W · ${r.l}L</span><b style="color:${pl>=0?'var(--g)':'var(--r)'}">${pl>=0?'+':'-'}$${Math.abs(pl).toFixed(2)}</b>`}
+async function doTrade(pick,stake,digit){const j=await api('trade',{account:acc,stake,kind,pick,digit,symbol:sym});U=j.user;money();addTick(j.tick);lastRes=j.win;const s=sess[acc];s.n++;if(j.win)s.w++;s.pl+=j.profit;rings();return j}
+async function press(k){if(auto){if(auto.side==k)stopAuto();return}
+const s=sides()[k=='A'?0:1];if(!s.ok)return toast('Pick a different digit',0);
+const base=Math.min(100,Math.max(.1,Math.round((+$('st').value||1)*100)/100));
+if(mode=='manual'){try{const j=await doTrade(s.pick,base,barrier);lastRun={n:1,w:j.win?1:0,l:j.win?0:1,pl:j.profit};setLast();toast(j.win?'Won +$'+j.profit.toFixed(2):'Lost $'+Math.abs(j.profit).toFixed(2),j.win)}catch(e){toast(e,0)}return}
+auto={side:k,pick:s.pick,digit:barrier,pl:0,n:0,w:0,l:0,stake:base,base};showLive();runAuto()}
+function showLive(){const a=auto;if(!a)return;['A','B'].forEach(k=>{const b=$('b'+k);if(k==a.side){b.classList.add('stop');b.innerHTML='<div class="stp">■ &nbsp;STOP</div>'}else b.classList.add('dim')});setLast()}
+async function runAuto(){const a=auto;if(!a)return;const tp=+$('tp').value||0,sl=+$('sl').value||0,m=Math.min(2,Math.max(1,+$('mu').value||1));
+try{const j=await doTrade(a.pick,a.stake,a.digit);if(auto!==a)return;a.n++;j.win?a.w++:a.l++;a.pl=+(a.pl+j.profit).toFixed(4);lastRun={n:a.n,w:a.w,l:a.l,pl:a.pl};setLast();
+a.stake=j.win?a.base:Math.min(100,+(a.stake*m).toFixed(2));
+if(tp&&a.pl>=tp)return finish(true,a);if(sl&&a.pl<=-sl)return finish(false,a);
+setTimeout(runAuto,1500)}catch(e){toast(e,0);stopAuto()}}
+function stopAuto(){auto=null;if($('bA')){updateBtns();setLast()}}
+function finish(ok,a){stopAuto();modal(`<div style="text-align:center"><div class="rc ${ok?'ok':'bad'}">${ok?'✓':'✕'}</div><h2 class="${ok?'gc':'rc2'}" style="font-size:20px">${ok?'Target Profit Hit! 🎉':'Stop Loss Hit'}</h2><div class="big ${a.pl>=0?'gc':'rc2'}">${a.pl>=0?'+':''}${a.pl.toFixed(2)} USD</div><div class="sbox"><div><span>Total Trades:</span><b>${a.n}</b></div><div><span>Wins / Losses:</span><b><i class="gc">${a.w}W</i> / <i class="rc2">${a.l}L</i></b></div><div><span>Win Rate:</span><b>${(a.w/a.n*100).toFixed(1)}%</b></div></div><button class="btn" style="margin:0;background:${ok?'#22c55e':'#ff4757'};box-shadow:none" onclick="menu(0)">Close</button></div>`,1)}
+function addTick(t){if(!t||t.t<=lastT||(t.sym&&t.sym!==sym))return;lastT=t.t;pts.push(t.price);tms.push(t.t);digs.push(t.digit);if(pts.length>500){pts.shift();tms.shift()}if(digs.length>500)digs.shift();
+const p0=pts[Math.max(0,pts.length-zm)],ch=(t.price/p0-1)*100;$('pr').textContent=t.price.toFixed(2)+'  '+(ch>=0?'+':'')+ch.toFixed(2)+'%';$('pr').style.color=ch>=0?'var(--g)':'var(--r)';
+$('load').classList.toggle('hide',pts.length>1);plot();rings()}
+function ringsInit(){$('dg').innerHTML=[...Array(10).keys()].map(i=>`<div class="dg" id="d${i}"><svg viewBox="0 0 34 34"><circle class="tk" cx="17" cy="17" r="15"/><circle class="ar" id="a${i}" cx="17" cy="17" r="15" transform="rotate(-90 17 17)"/></svg><div class="n"><b>${i}</b><small id="f${i}">10.0%</small></div><span class="mk"></span></div>`).join('')}
+function rings(){const n=digs.length||1,c=Array(10).fill(0);digs.forEach(d=>c[d]++);const f=c.map(x=>x/n),mx=Math.max(...f),mn=Math.min(...f),cur=digs[digs.length-1],gl=lastRes===true?'#22c55e':lastRes===false?'#ff4757':'#7c3aed';
+f.forEach((v,i)=>{$('f'+i).textContent=(v*100).toFixed(1)+'%';const a=$('a'+i);let col='transparent',len=0;
+if(digs.length>20&&mx>mn){if(v==mx){col='#22c55e';len=94.2*Math.min(.55,.14+(v-.1)*5)}else if(v==mn){col='#ff4757';len=94.2*Math.min(.55,.14+(.1-v)*5)}}
+a.style.stroke=col;a.style.strokeDasharray=len+' 94.2';const d=$('d'+i);d.classList.toggle('cur',i===cur);d.style.setProperty('--gl',gl);d.querySelector('.mk').style.display=i===cur?'block':'none'})}
+function zoom(d){zm=Math.min(300,Math.max(20,zm+d*20));plot()}
+function plot(){const c=$('cv'),x=c.getContext('2d'),W2=c.width=c.clientWidth*2,H=c.height=c.clientHeight*2;x.clearRect(0,0,W2,H);const p=pts.slice(-zm),tm=tms.slice(-zm);if(p.length<2)return;
+const mn=Math.min(...p),mx=Math.max(...p),r=(mx-mn)||1,px=i=>i/(p.length-1)*W2*.78,py=v=>H*.78-(v-mn)/r*H*.5;
+x.fillStyle='#ffffff10';x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.lineTo(px(p.length-1),H);x.lineTo(0,H);x.fill();
+x.strokeStyle='#e5e7eb';x.lineWidth=3;x.beginPath();p.forEach((v,i)=>i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v)));x.stroke();
+const lx=px(p.length-1),ly=py(p[p.length-1]);x.fillStyle='#fff';x.beginPath();x.arc(lx,ly,8,0,7);x.fill();
+$('axis').innerHTML=[0,1,2,3].map(k=>`<div style="position:absolute;right:8px;top:${py(mn+r*k/3)/2-8}px;color:var(--mu);font-size:12px">${(mn+r*k/3).toFixed(2)}</div>`).join('')+[.12,.36,.6,.84].map(fr=>{const i=Math.round(fr*(p.length-1));return `<div style="position:absolute;bottom:5px;left:${px(i)/2-30}px;width:60px;text-align:center;color:var(--mu);font-size:12px">${new Date(tm[i]).toTimeString().slice(0,8)}</div>`}).join('')+`<div class="ptag" style="top:${ly/2}px">${p[p.length-1].toFixed(2)}</div>`}
+function symMenu(){const el=$('syml');el.classList.toggle('hide');el.innerHTML=SYMS.map(s=>`<div class="${s.id==sym?'on':''}" onclick="pickSym('${s.id}')"><i>▮</i>${s.name}${s.id==sym?'<em></em>':''}</div>`).join('')}
+function pickSym(id){$('syml').classList.add('hide');stopAuto();loadSym(id)}
+async function loadSym(id){sym=id;pts=[];tms=[];digs=[];lastT=0;lastRes=null;$('load').classList.remove('hide');const s=SYMS.find(x=>x.id==id);$('symN').textContent=s?s.short:id;try{(await api('ticks?symbol='+id)).forEach(addTick)}catch{}rings()}
+const when=t=>{const d=new Date(t),tt=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});return(d.toDateString()==new Date().toDateString()?'Today ':d.toLocaleDateString()+' ')+tt};
+const sname=id=>{const s=SYMS.find(x=>x.id==id);return s?s.name:id},stag=id=>{const s=SYMS.find(x=>x.id==id);return s?s.short.replace('Vol ','V'):id};
+function ptab(i){tabP=i;[0,1,2].forEach(k=>$('p'+k).className='ptab'+(k==i?' on':''));const H=U.history.filter(h=>h.account==acc);$('p1').textContent='Closed ('+H.length+')';let out='';
+if(i==1)out=H.map(h=>{const nm=sname(h.sym).replace(' Index',''),first=/^(Even|Over|Match)/.test(h.label);return `<div class="pc"><div class="ph"><span class="pi">↗</span><div><b style="font-size:20px">${nm}</b><br><span style="color:var(--mu)">Index</span></div><span class="pk ${first?'gc':'rc2'}"><i style="background:${first?'var(--g)':'var(--r)'}"></i>${h.label}</span></div><div class="stt ${h.win?'gc':'rc2'}">Closed</div><span class="usd">USD</span><div class="pg"><div><span>Total profit/loss:</span><b class="${h.win?'gc':'rc2'}">${h.profit>=0?'+':''}${h.profit.toFixed(2)}</b></div><div><span>Contract value:</span><b class="${h.win?'gc':'rc2'}">${h.payout.toFixed(2)}</b></div><div><span>Stake:</span><b>${h.stake.toFixed(2)}</b></div><div><span>Potential payout:</span><b>${h.potential.toFixed(2)}</b></div></div></div>`}).join('');
+if(i==2){const it=[];H.forEach(h=>{it.push({t:h.t+1,html:`<div class="tr"><span class="ti ${h.win?'ok':'bad'}">${h.win?'↗':'↘'}</span><div class="tm"><b class="${h.win?'gc':'rc2'}">Closed</b><span class="tag">${stag(h.sym)}</span><br><span class="mu2">${h.label.toUpperCase()} • ${when(h.t)}</span></div><div class="ta"><b class="${h.win?'gc':'rc2'}">${h.win?'+':''}${h.payout.toFixed(2)}</b><br><span class="mu2">Bal: ${h.balAfter.toFixed(2)}</span></div></div>`});
+it.push({t:h.t,html:`<div class="tr"><span class="ti stk">↘</span><div class="tm"><b>Stake</b><span class="tag">${stag(h.sym)}</span><br><span class="mu2">${h.label.toUpperCase()} • ${when(h.t)}</span></div><div class="ta"><b style="color:#f59e0b">-${h.stake.toFixed(2)}</b><br><span class="mu2">Bal: ${h.balStake.toFixed(2)}</span></div></div>`})});
+if(acc=='real')[...(U.deposits||[]).map(x=>({...x,d:1})),...(U.withdrawals||[]).map(x=>({...x,d:0}))].forEach(x=>{const s=stt(x);it.push({t:x.t,html:`<div class="tr"><span class="ti ${x.d?'ok':'bad'}">${x.d?'↙':'↗'}</span><div class="tm"><b class="${x.d?'gc':'rc2'}">${x.d?'Deposit':'Withdrawal'}</b><span class="tag">${s}</span><br><span class="mu2">${String(x.method).toLowerCase()=='usdt'?'USDT':'MPESA'} • ${when(x.t)}</span></div><div class="ta"><b class="${x.d?'gc':'rc2'}">${x.d?'+':'-'}${(+x.usd).toFixed(2)}</b></div></div>`})});
+out=it.sort((a,b)=>b.t-a.t).map(x=>x.html).join('')}
+$('hist').innerHTML=out||`<div class="empty"><div class="c">◎</div><b style="color:var(--tx);font-size:22px">${i==0?'No open positions':i==1?'No closed positions':'No transactions'}</b><p style="margin-top:10px">${i==0?'Your active trades will appear here':'Nothing here yet'}</p></div>`;
+const s=sess[acc];$('sA').textContent=`${s.n} trades (${s.w}W / ${s.n-s.w}L)`;$('sB').textContent=(s.pl>=0?'+':'')+s.pl.toFixed(2)+' USD';$('sB').style.color=s.pl>=0?'var(--g)':'var(--r)'}
+function view(v){$('vTrade').classList.toggle('hide',v!='Trade');$('vPos').classList.toggle('hide',v!='Pos');$('nT').className=v=='Trade'?'on':'';$('nP').className=v=='Pos'?'on':'';if(v=='Pos')ptab(tabP)}
+async function init(){money();try{RTP=(await api('odds')).rtp}catch{}try{const c=await api('config');USDT_ADDR=c.usdtAddress||USDT_ADDR;MIN_USDT=c.minUsdt||MIN_USDT}catch{}try{SYMS=await api('symbols')}catch{}ringsInit();
+$('chips').innerHTML=[0.1,1,5,10,25,50,100].map(v=>`<div class="chip" data-v="${v}" onclick="$('st').value=${v};pay()">$${v}</div>`).join('');$('st').oninput=pay;
+setKind('eo');setLast();await loadSym(sym);if(!poll)poll=setInterval(async()=>{try{addTick(await api('tick?symbol='+sym))}catch{}},1000)}
+(async()=>{if(tok){try{U=await api('me');go('app');init();return}catch{}}go(location.hash=='#register'?'register':'login')})();
+</script></body></html>
