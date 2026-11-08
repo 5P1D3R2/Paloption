@@ -162,11 +162,16 @@ app.post('/api/deposit/mpesa', auth, async (req, res) => {
       headers: { Apikey: process.env.TINYPESA_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ amount: String(kes), msisdn: phone, account_no: process.env.TINYPESA_SLUG || process.env.TINYPESA_ACCOUNT_NO || id }).toString()
     });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || j.success === false) return res.status(502).json({ error: j.message || 'Could not start payment' });
+    const raw = await r.text();
+    let j = {}; try { j = JSON.parse(raw); } catch {}
+    console.log('TinyPesa initialize ->', r.status, new URL(TINYPESA_URL).pathname, raw.slice(0, 300));
+    if (!r.ok || j.success === false || j.success === 'false') {
+      const why = j.message || j.error || (Array.isArray(j.errors) ? j.errors.join(', ') : j.errors) || raw.slice(0, 120).replace(/<[^>]*>/g, '').trim();
+      return res.status(502).json({ error: 'TinyPesa (' + r.status + '): ' + (why || 'no details') });
+    }
     deposits.set(id, { email: req.user.email, usd, kes, phone, status: 'pending', requestId: j.request_id || null, t: Date.now() });
     res.json({ id, kes });
-  } catch (e) { res.status(502).json({ error: 'Payment provider unreachable' }); }
+  } catch (e) { console.log('TinyPesa request failed:', e.message); res.status(502).json({ error: 'Payment provider unreachable' }); }
 });
 app.get('/api/deposit/status/:id', auth, (req, res) => {
   const d = deposits.get(req.params.id);
