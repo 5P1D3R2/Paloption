@@ -6,6 +6,17 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 const app = express();
+const ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
+app.use((req, res, next) => {
+  const o = req.headers.origin;
+  if (o && (ORIGINS.includes(o) || ORIGINS.includes('*'))) {
+    res.setHeader('Access-Control-Allow-Origin', o);
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 app.use(express.json());
 app.use(express.static(__dirname));
 
